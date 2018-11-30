@@ -1,0 +1,13 @@
+diff --git a/project.py b/project.py
+index a73f43a..d9073ea 100755
+--- a/project.py
++++ b/project.py
+@@ -931,7 +931,7 @@ class Project(object):
+     di = self.work_git.DiffZ('diff-index', '-M', '--cached', HEAD)
+     df = self.work_git.DiffZ('diff-files')
+     do = self.work_git.LsOthers()
+-    if not rb and not di and not df and not do and not self.CurrentBranch:
++    if not rb and not di and not df and not do: #and not self.CurrentBranch:
+       return 'CLEAN'
+ 
+     out = StatusColoring(self.config)
