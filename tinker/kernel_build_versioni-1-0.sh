@@ -7,12 +7,11 @@
 ###############################################################################
 ############################# var definition start ############################
 CUR_PATH=`pwd`
-LOG_DIR=log
+LOG_DIR=${CUR_PATH}/log
 LOG_FILE=kernel_build.log
 SRC_DIR=debian_kernel
 SRC_PATH=${CUR_PATH}/${SRC_DIR}
-LOG_PATH=${CUR_PATH}/${LOG_DIR}
-LOG=${LOG_PATH}/${LOG_FILE}
+LOG_FILE=${LOG_DIR}/${LOG_FILE}
 
 CMD=(kernel clean dtbs help)
 var=`echo "$1"`
@@ -47,7 +46,7 @@ function cmd_check()
 	then
 		flag=1
 	fi
-	############## condition ###############
+	###### condition #######
 	if [ ${flag} -eq 1 ]
 	then
 		echo "cmd check successed"
@@ -82,15 +81,16 @@ function clean()
 
 function set_environment()
 {
-	if [ ! -d "/{LOG_DIR}" ]
+	echo "log_dir is  : ${LOG_DIR}"
+	if [ -d "${LOG_DIR}" ]
 	then
 		echo "---> ${LOG_DIR} has been exist, clean log"
-		rm -rf ${LOG_PATH}/${LOG_FILE}
-		touch ${LOG}
+		rm -rvf ${LOG_FILE}
+		touch ${LOG_FILE}
 	else
-		echo "---> createe -a ${LOG} log dir"
-		mkdir ${LOG_PATH}
-		touch ${LOG}
+		echo "---> create ${LOG_DIR} log dir"
+		mkdir ${LOG_DIR}
+		touch ${LOG_FILE}
 	fi
 
 	if [ $? -ne 0 ]
@@ -101,38 +101,38 @@ function set_environment()
 		echo "---> log created"
 	fi
 
-	echo "---> current path is ${CUR_PATH}" | tee -a ${LOG} 
-	echo "---> kernel path is ${SRC_PATH}"  | tee -a ${LOG}
-	echo "---> set log path is ${LOG_PATH}" | tee -a ${LOG}
-	echo "---> set build log file is ${LOG_FILE}" | tee -a ${LOG}
+	echo "---> current path is ${CUR_PATH}" | tee -a ${LOG_FILE} 
+	echo "---> kernel path is ${SRC_PATH}"  | tee -a ${LOG_FILE}
+	echo "---> set log path is ${LOG_DIR}" | tee -a ${LOG_FILE}
+	echo "---> set build log file is ${LOG_FILE}" | tee -a ${LOG_FILE}
 
-	# echo "move in kernel src path ${SRC_PATH}" | tee -a ${LOG}
+	# echo "move in kernel src path ${SRC_PATH}" | tee -a ${LOG_FILE}
 	# cd ${SRC_PATH}
 	# echo "------------ ready to build tinker board kernel -----------------" | tee -a ${LOG}
-	# echo "---> current path is $(pwd)" | tee -a ${LOG}
-	echo "------> ready to build kernel in 3 seconds" | tee -a ${LOG}
+	# echo "---> current path is $(pwd)" | tee -a ${LOG_FILE}
+	echo "------> ready to build kernel in 3 seconds" | tee -a ${LOG_FILE}
 	echo `sleep 3s`
 }
 
 
 function build_kernel()
 {
-	make miniarm-rk3288_defconfig ARCH=arm |  tee -a ${LOG}
+	make miniarm-rk3288_defconfig ARCH=arm |  tee -a ${LOG_FILE}
 
-	echo "------> make zImage ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-" |  tee -a ${LOG}
-	make zImage ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- | tee -a ${LOG}
+	echo "------> make zImage ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-" |  tee -a ${LOG_FILE}
+	make zImage ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- | tee -a ${LOG_FILE}
 
-	echo "------> make modules ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-  CFLAGS_MODULE=-Wno-misleading-indentation" |  tee -a ${LOG}
-	make modules ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CFLAGS_MODULE=-Wno-misleading-indentation | tee -a ${LOG}
+	echo "------> make modules ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-  CFLAGS_MODULE=-Wno-misleading-indentation" |  tee -a ${LOG_FILE}
+	make modules ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CFLAGS_MODULE=-Wno-misleading-indentation | tee -a ${LOG_FILE}
 }
 
 function build_dtbs()
 {
-	echo "------> make rk3288-miniarm.dtb ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-" |  tee -a ${LOG}
-	make rk3288-miniarm.dtb ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- | tee -a ${LOG}
+	echo "------> make rk3288-miniarm.dtb ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-" |  tee -a ${LOG_FILE}
+	make rk3288-miniarm.dtb ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- | tee -a ${LOG_FILE}
 
-	echo "------> make dtbs ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-" |  tee -a ${LOG}
-	make dtbs ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- | tee -a ${LOG}
+	echo "------> make dtbs ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-" |  tee -a ${LOG_FILE}
+	make dtbs ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- | tee -a ${LOG_FILE}
 }
 ############################ function definition end ##############################
 ######################## build cmmand start #########################
