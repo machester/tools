@@ -47,20 +47,20 @@ function cmd_check()
 	then
 		flag=1
 	fi
-	########################################
+	############## condition ###############
 	if [ ${flag} -eq 1 ]
 	then
 		echo "cmd check successed"
 		echo "cmd : [$0] <${var}>"
 	else
-		echo "cmd check faild. run ./kernel_build.sh help"
+		echo "cmd check faild. run $0 help"
 		exit
 	fi
 }
 
 function shell_identiffy()
 {
-	echo $SHELL
+	echo "using shell path : $SHELL"
 }
 
 function cmd_help()
@@ -69,7 +69,7 @@ function cmd_help()
 	# get arry length ${#CMD[@]} or ${#CMD[*]}
 	for var in ${CMD[@]}
 	do
-		echo "...... ${var} "
+		echo "...... @ ${var} "
 	done
 	echo "----------------------------------------"
 }
@@ -110,7 +110,7 @@ function set_environment()
 	# cd ${SRC_PATH}
 	# echo "------------ ready to build tinker board kernel -----------------" | tee -a ${LOG}
 	# echo "---> current path is $(pwd)" | tee -a ${LOG}
-	echo "------> start to build at 3 second" | tee -a ${LOG}
+	echo "------> ready to build kernel in 3 seconds" | tee -a ${LOG}
 	echo `sleep 3s`
 }
 
@@ -169,7 +169,3 @@ else
 	echo "---- input command error ------"
 	cmd_help
 fi
-
-
-
-
