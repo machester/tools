@@ -23,7 +23,7 @@ set showcmd
 set nobackup
 set noswapfile
 set cursorline
-"set cursorcolumn			"set v cursor
+"set cursorcolumn			   "set v cursor
 set showmatch
 
 set cindent
