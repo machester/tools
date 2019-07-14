@@ -1,4 +1,4 @@
-" vim configuration
+" vim configuration, fiel save at ~/.vimrc or /etc/vim/vim.rc
 set encoding=utf-8
 set fileformat=unix
 set ff=unix						"set endfile syle is unix LF
