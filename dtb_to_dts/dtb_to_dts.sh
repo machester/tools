@@ -1,5 +1,13 @@
 #!/bin/bash
 
+######################################################################################
+# ./dtc -I dtb -O dts <source_file>.dtb <target_file>.dts
+# 2152  find ./ -name dtc
+# 2153  ./kernel/scripts/dtc/dtc -I dtb -O dts kernel/arch/arm/boot/dts/rk3288-evb-android-rk808-edp-lvds.dtb  -o ../refer.dts
+# 2154  ./kernel/scripts/dtc/dtc -I dtb -O dts kernel/arch/arm/boot/dts/rk3288-r100u-android.dtb  -o ../refer_r100u.dts
+
+######################################################################################
+
 function usage()
 {
     echo "------------------------------------------------------------------"
