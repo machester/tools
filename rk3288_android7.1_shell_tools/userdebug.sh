@@ -9,6 +9,7 @@ usage()
     echo "       -U = build u-boot"
     echo "       -K = build kernel"
     echo "       -A = build android "
+    echo "       -C = clean"
     exit 1
 }
 
@@ -17,6 +18,7 @@ BUILD_KERNEL=false
 BUILD_ANDROID=false
 BUILD_UPDATE_IMG=false
 BUILD_OTA=false
+CLEAN_BUILD=false
 BUILD_VARIANT=userdebug
 
 CUR_PATH=`pwd`
@@ -46,7 +48,7 @@ function log_create() {
 }
 ####################### end: create log file ####################
 # check pass argument
-while getopts "UKAouv:" arg
+while getopts "UKACouv:" arg
 do
     case $arg in
         U)
@@ -60,6 +62,10 @@ do
         A)
             echo "will build android"
             BUILD_ANDROID=true
+            ;;
+        C)
+            echo "build clean"
+            CLEAN_BUILD=true
             ;;
         o)
             echo "will build ota package"
@@ -76,7 +82,25 @@ do
             usage ;;
     esac
 done
+
+# build clean
+if [ "$CLEAN_BUILD" = true ] ; then
+    echo "start clean" 
+    make clean
+    if [ $? -eq 0 ]; then
+        echo "Build clean ok!"
+    else
+        echo "Build clean failed!"
+        exit 1
+    fi
+    # if only need clean
+    if [ $# -lt 2 ] ; then
+        exit 1
+    fi
+fi
+
 log_create
+
 source build/envsetup.sh >/dev/null && setpaths
 TARGET_PRODUCT=`get_build_var TARGET_PRODUCT`
 # TARGET_PRODUCT=rk3288_box
@@ -92,7 +116,7 @@ UBOOT_DEFCONFIG=rk3288_secure_defconfig
 # KERNEL_DEFCONFIG=rockchip_defconfig
 KERNEL_DEFCONFIG=rockchip_r100u_defconfig
 KERNEL_DTS=rk3288-r100u-android
-# KERNEL_DTS=rk3288-evb-android-rk808-edp
+# KERNEL_DTS=rk3288-evb-android-rk808-edp-lvds
 echo "KERNEL_DTS : $KERNEL_DTS"
 
 
@@ -113,6 +137,7 @@ STUB_PATH=Image/"$KERNEL_DTS"_"$PLATFORM_VERSION"_"$DATE"_RELEASE_TEST_$BUILD_VA
 STUB_PATH="$(echo $STUB_PATH | tr '[:lower:]' '[:upper:]')"
 export STUB_PATH=$PROJECT_TOP/$STUB_PATH
 export STUB_PATCH_PATH=$STUB_PATH/PATCHES
+
 
 # build uboot
 if [ "$BUILD_UBOOT" = true ] ; then
