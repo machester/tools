@@ -38,6 +38,27 @@ function pack_folde_create()
     fi
 }
 
+function check_build_tmpdir_val()
+{
+    echo "---> check file build/tmp/saved_tmpdir"
+    cat $CUR_PATH/build/tmp/saved_tmpdir | while read items
+    echo "$items"
+    do
+        if [ "$items" = "$CUR_PATH/build/tmp/" ]; then
+            echo "patch no need to update"
+            break
+        else
+            # echo "$CUR_PATH/build/tmp/" > $CUR_PATH/build/tmp/saved_tmpdir
+            echo "project moved, rebuild project"
+            sleep 1s
+            rm -rvf $CUR_PATH/build/tmp
+            sleep 1s
+            break
+        fi
+    done
+    echo "---> check finishend"
+}
+
 function usage()
 {
     echo "       -L = build lk"
@@ -89,7 +110,9 @@ done
 log_create
 
 echo "------------ start ------------------------------" | $ADD_LOG
+echo "---> in PATH: $`pwd`"
 echo " current path = $CUR_PATH" | $ADD_LOG
+check_build_tmpdir_val
 echo "---> set enviorment" | $ADD_LOG
 # clean old TEMPLATECONF var
 sed -i "/$EVN_VAR/d" ~/.profile
@@ -104,7 +127,7 @@ source meta/poky/oe-init-build-env
 echo "----------------------------------------"
 sleep 3s
 # bitbake mtk-image-openmm-aiv 2>&1 | tee build_log.log
-echo "---> moved in $`pwd`"
+
 if [ "$BUILD_LK" == true ] ; then
     echo "---> no finied yes" | $ADD_LOG
 fi 
