@@ -1,24 +1,31 @@
-# 阿里源
-deb http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse
-deb http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse
-deb http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse
-deb http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse
-deb http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse
-deb-src http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse
-deb-src http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse
-deb-src http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse
-deb-src http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse
-deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports xenial main restricted multiverse universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports xenial main restricted multiverse universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports xenial-updates main restricted multiverse universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports xenial-updates main restricted multiverse universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports xenial-security main restricted multiverse universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports xenial-security main restricted multiverse universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports xenial-proposed main restricted multiverse universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports xenial-proposed main restricted multiverse universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports xenial-backports main restricted multiverse universe
+deb-src http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports xenial-backports main restricted multiverse universe
 
-##中科大源
+############## ubuntu source list
+deb http://ports.ubuntu.com/ubuntu-ports/ xenial main restricted
+deb-src http://ports.ubuntu.com/ubuntu-ports/ xenial main restricted
+deb http://ports.ubuntu.com/ubuntu-ports/ xenial-updates main restricted
+deb-src http://ports.ubuntu.com/ubuntu-ports/ xenial-updates main restricted
 
-deb https://mirrors.ustc.edu.cn/ubuntu/ bionic main restricted universe multiverse
-deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic main restricted universe multiverse
-deb https://mirrors.ustc.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
-deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
-deb https://mirrors.ustc.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
-deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
-deb https://mirrors.ustc.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
-deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
-deb https://mirrors.ustc.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse
-deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse
+deb http://ports.ubuntu.com/ubuntu-ports/ xenial universe
+deb-src http://ports.ubuntu.com/ubuntu-ports/ xenial universe
+deb http://ports.ubuntu.com/ubuntu-ports/ xenial-updates universe
+deb-src http://ports.ubuntu.com/ubuntu-ports/ xenial-updates universe
+
+deb http://ports.ubuntu.com/ubuntu-ports/ xenial-backports main restricted
+deb-src http://ports.ubuntu.com/ubuntu-ports/ xenial-backports main restricted
+
+deb http://ports.ubuntu.com/ubuntu-ports/ xenial-security main restricted
+deb-src http://ports.ubuntu.com/ubuntu-ports/ xenial-security main restricted
+deb http://ports.ubuntu.com/ubuntu-ports/ xenial-security universe
+deb-src http://ports.ubuntu.com/ubuntu-ports/ xenial-security universe
+deb http://ports.ubuntu.com/ubuntu-ports/ xenial-security multiverse
+deb-src http://ports.ubuntu.com/ubuntu-ports/ xenial-security multiverse
