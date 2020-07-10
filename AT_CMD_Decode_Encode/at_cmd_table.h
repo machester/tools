@@ -27,7 +27,7 @@ typedef struct {
 	uint8_t cmd_help[MAX_CMD_LEN];
 }cmd_info_formatTypeDef;
 
-
+extern info_formatTypeDef cmd_info[MAX_CMD_LIST];
 extern info_formatTypeDef *ptr_cmd_info;
 
 void CMD_Init(void);
