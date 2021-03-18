@@ -1,0 +1,10 @@
+
+# Config github
+Host github.com               
+HostName github.com
+IdentityFile /home/quan/.ssh/id_rsa
+
+# 配置gitee
+Host gitee.com
+HostName gitee.com
+IdentityFile /home/quan/.ssh/id_rsa_gitee
