@@ -1,0 +1,92 @@
+Format Description:
+	format description
+==================================
+Bug Fix: <bug brief>
+Zen Tao: <zen tao id>
+MTK CR: <mtk cr no.>
+UNISOC CQ: <unisoc cq no.>
+
+Detail Descriptions:
+	--- bug descriptions write information here bug
+Why:
+	--- why write information here bug
+How:
+	--- how write information here bug
+
+Change-Id:
+	--- change-id write information here
+Signed-off-by:
+	--- Signed-off-by write here
+==================================
+New Feature:
+MTK CR:
+UNISOC CQ:
+Brief:
+	--- new feature brief write information here bug
+
+Detail Descriptions:
+	--- new feature descriptions
+Why:
+	--- what write information here bug
+How:
+	--- opetion write information here bug
+
+Change-Id:
+	--- commit-id write information here bug
+Signed-off-by:
+	--- signed-off-by write information here bug
+==================================
+Feature Upgrade:
+MTK CR:
+UNISOC CQ:
+Brief:
+	--- feature upgrade brief write information here bug
+
+Detail Descriptions:
+	--- feature upgrade descriptions write information here bug
+What:
+	--- what write information here bug
+Opetion:
+	--- opetion write information here bug
+
+Commit-ID:
+	--- commit-id write information here bug
+Signed-off-by:
+	--- signed-off-by write information here bug
+==================================
+Revert:
+MTK CR:
+UNISOC CQ:
+Brief:
+	--- revert brief write information here bug
+
+Detail Descriptions:
+	--- revert descriptions write information here bug
+What:
+	--- what write information here bug
+Opetion:
+	--- opetion write information here bug
+
+Commit-ID:
+	--- commit-id write information here bug
+Signed-off-by:
+	--- signed-off-by write information here bug
+==================================
+Merge:
+MTK CR:
+UNISOC CQ:
+Brief:
+	--- merge brief write information here bug
+
+Detail Descriptions:
+	--- merge descriptions write information here bug
+What:
+	--- what write information here bug
+Opetion:
+	--- opetion write information here bug
+
+Commit-ID:
+	--- commit-id write information here bug
+Signed-off-by:
+	--- signed-off-by write information here bug
+==================================
