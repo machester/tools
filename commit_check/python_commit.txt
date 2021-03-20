@@ -1,0 +1,12 @@
+Bug Fix:            333               
+Zen Tao: <zen tao id>
+MTK CR: <mtk cr no.>
+UNISOC CQ: <unisoc cq no.>
+Detail Descriptions:
+--- please write the descriptions of this bug in detail here
+Why:
+--- please write the reason why this bug occurs here
+How:
+--- please write how you solve this bug here
+Associated branch path：
+--- please write Associated branch path if have

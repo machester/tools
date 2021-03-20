@@ -25,7 +25,7 @@ Detail Descriptions:
 Why:
 	--- what write information here bug
 How:
-	--- opetion write information here bug
+	--- options write information here bug
 Associated branch path：
 	--- please write Associated branch path if have
 ===============================================================
@@ -38,8 +38,8 @@ Detail Descriptions:
 	--- feature upgrade descriptions write information here bug
 What:
 	--- what write information here bug
-Opetion:
-	--- opetion write information here bug
+Options:
+	--- options write information here bug
 Associated branch path：
 	--- please write Associated branch path if have
 Affected submission Id:
@@ -68,8 +68,8 @@ Detail Descriptions:
 	--- merge descriptions write information here bug
 What:
 	--- what write information here bug
-Opetion:
-	--- opetion write information here bug
+Options:
+	--- options write information here bug
 Associated branch path：
 	--- please write Associated branch path if have
 ===============================================================

@@ -11,14 +11,40 @@ commit_file_path = "/mnt/d/code/github/tools/commit_check/python_commit.txt"
 DIVID_MARK = "======"
 VALUE_CUT_MARK = ":"
 
+MINI_INFO_LEN = 3
+
 COMMENT = "please choose the type: 1. Bug Fix 2. New Feature 3.Feature Upgrade 4.Revert 5.Merge"
+
 commit_type_dic = {"1" : "Bug Fix",
                    "2" : "New Feature",
                    "3" : "Feature Upgrade",
                    "4" : "Revert",
-                   "5" : "Merge"}
+                   "5" : "Merge"
+                   }
+
+commit_msg_container_dic = {
+    "Bug Fix"               : "nope",
+    "New Feature"           : "nope",
+    "Feature Upgrade"       : "nope",
+    "Revert"                : "nope",
+    "Merge"                 : "nope",
+
+    "Zen Tao"               : "nope",
+    "MTK CR"                : "nope",
+    "UNISOC CQ"             : "nope",
+
+    "Detail Descriptions"   : "nope",
+    "Why"                   : "nope",
+    "How"                   : "nope",
+    "Associated branch path": "nope",
+    "What"                  : "nope",
+    "Options"               : "nope",
+    "Affected submission Id" : "nope"
+
+}
 
 commit_fixed_head_list = ["Zen Tao", "MTK CR", "UNISOC CQ", "Detail Descriptions"]
+
 
 def do_shell_cmd(shell_cmd) :
     try :
@@ -56,20 +82,19 @@ def read_and_print_file(path_name) :
         print ("=========================================================================")
 
 
-def do_commit(file_path):
-    
+def do_commit(file_path) :
     commit_msg = ""
 
     with open (file_path, "rt", encoding="UTF-8") as fp :
         for data in fp :
-            data.strip()
+            data.strip ()
             commit_msg += data
 
     tmp_shell_cmd = "git commit -sm\n" + commit_msg
-    ret_val = do_shell_cmd(tmp_shell_cmd)
-    if(-1 != ret_val):
+    ret_val = do_shell_cmd (tmp_shell_cmd)
+    if (-1 != ret_val) :
         return True
-    else:
+    else :
         return False
 
 
@@ -90,90 +115,117 @@ def format_commit_file(file_path) :
 
 # commit_fixed_head_list = ["Zen Tao", "MTK CR", "UNISOC CQ", "Detail Descriptions"]
 
-def fixed_head_format_check(file_path):
-    with open (template_file_path, "rt", encoding="UTF-8") as fp :
-        for line_index, data in enumerate (fp, start = 1) :
-            if (False == found_head) and (search_str in data) :
-                print("TODO:")
+
+# commit_msg_container_dic = {
+#     "Bug Fix"               : "nope",
+#     "New Feature"           : "nope",
+#     "Feature Upgrade"       : "nope",
+#     "Revert"                : "nope",
+#     "Merge"                 : "nope",
+
+#     "Zen Tao"               : "nope",
+#     "MTK CR"                : "nope",
+#     "UNISOC CQ"             : "nope",
+
+#     "Detail Descriptions"   : "nope",
+#     "Why"                   : "nope",
+#     "How"                   : "nope",
+#     "Associated branch path": "nope",
+#     "What"                  : "nope",
+#     "Options"               : "nope",
+#     "Affected submission Id" : "nope"
+
+# }
 
 
 
+# file alreay formated no need to check empty line and spcae
+def fixed_head_format_check(file_path) :
+    current_report_type_key = " "
+
+    print ("---> fixed_head_format_check")
+    with open (file_path, "rt", encoding="UTF-8") as fp :
+        for line_index, data in enumerate (fp, start=1) :
+            data.strip ()
+            value_start_position = data.find (VALUE_CUT_MARK)
+            report_info_mark = data[0 : value_start_position]
+            report_info_mark_value = data[(value_start_position + 1) :]
+            # remove left and right space
+            report_info_mark_value = report_info_mark_value.strip ()
+            print ("report_info_mark_value len: " + str (len (report_info_mark_value)) + " , value: " + report_info_mark_value)
+            ### check report type start, first check
+            # check which report type it is
+            if(False == current_report_type_key.isspace()) :
+                for dic_key, dic_value in commit_type_dic.items() :
+                    if report_info_mark == dic_value:
+                        if (len (report_info_mark_value) <= MINI_INFO_LEN) and (True == report_info_mark_value.isspace ()) :
+                        # check if value is empty or only have space 
+                            print (report_info_mark + " information is empty.")
+                            return False
+                        else: 
+                        # store information """
+                            commit_msg_container_dic[report_info_mark] = report_info_mark_value
+                            current_report_type_key = dic_key
+                            print("key: " + current_report_type_key + " value: " + commit_msg_container_dic[report_info_mark])
+                            break
+            
+
+            ### check report type start, first check
+            
 
 
-    # with open (file_path, "rt", encoding="UTF-8") as fp :
-    #     # find head mark
-    #     for data in fp :
-    #         data.strip ()
-    #         value_start_position = data.find (VALUE_CUT_MARK)
-    #         report_mark = data[0 : value_start_position]
-    #         break
 
-        # print("line_index = " + str(line_index))
-        # if (False == found_head) and (search_str in data) :
-        #     print ("found in line: " + str (line_index))
-        #     start_line = line_index
-        #     found_head = True
+            ### other information check and store
+            ### 需要截取两个关键字头的信息
+            # for match_value in commit_msg_container_dic.values() :
+                
+            #     if(report_info_mark == commit_msg_container_dic.)
+        
 
-
-    # report_mark = ""
-
-    # if (False == is_file_exist (file_path)) :
-    #     return False
-
-    # # format_commit_file(file_path) # already formatted
-
-    # with open (file_path, "rt", encoding="UTF-8") as fp :
-    #     # find head mark
-    #     for data in fp :
-    #         data.strip ()
-    #         value_start_position = data.find (VALUE_CUT_MARK)
-    #         report_mark = data[:value_start_position]
-    #         break
-    #     # print("---> report_mark: " + report_mark + " position: " + str(value_start_position))
-    #     # check if head mark dic
-    # for key, value in commit_type_dic.items () :
 
 
 
 
 def bugfix_format_check(file_path) :
-    ret_val = fixed_head_format_check(file_path)
-    if False == ret_val:
+    print ("---> bugfix_format_check")
+    ret_val = fixed_head_format_check (file_path)
+    if False == ret_val :
         return False
 
     return True
 
 
 def new_feature_format_check(file_path) :
-    ret_val = fixed_head_format_check(file_path)
-    if False == ret_val:
+    ret_val = fixed_head_format_check (file_path)
+    if False == ret_val :
         return False
 
     return True
 
 
 def feature_upgrade_format_check(file_path) :
-    ret_val = fixed_head_format_check(file_path)
-    if False == ret_val:
+    ret_val = fixed_head_format_check (file_path)
+    if False == ret_val :
         return False
-    
+
     return True
 
 
 def revert_format_check(file_path) :
-    ret_val = fixed_head_format_check(file_path)
-    if False == ret_val:
+    ret_val = fixed_head_format_check (file_path)
+    if False == ret_val :
         return False
-    
+
     return True
 
 
 def merge_format_check(file_path) :
-    ret_val = fixed_head_format_check(file_path)
-    if False == ret_val:
+    ret_val = fixed_head_format_check (file_path)
+    if False == ret_val :
         return False
-    
+
     return True
+
 
 ## TODO:
 
@@ -236,11 +288,11 @@ def get_and_create_match_template(search_str) :
     end_line = 1
     line_index = 1
 
-    print ("transfered in str: " + search_str)
+    # print ("transfered in str: " + search_str)
     if is_file_exist (template_file_path) :
         print ("start find str: " + search_str)
         with open (template_file_path, "rt", encoding="UTF-8") as fp :
-            for line_index, data in enumerate (fp, start = 1) :
+            for line_index, data in enumerate (fp, start=1) :
                 # print("line_index = " + str(line_index))
                 if (False == found_head) and (search_str in data) :
                     print ("found in line: " + str (line_index))
@@ -322,7 +374,7 @@ while (False == commit_check_finished_flag) and (False == commit_template_create
             ret_val = format_check_commit (commit_file_path)
             if ret_val :
                 commit_check_finished_flag = True
-                do_commit(commit_file_path)
+                do_commit (commit_file_path)
                 break
             else :
                 commit_check_finished_flag = True
