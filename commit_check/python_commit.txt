@@ -1,4 +1,4 @@
-Bug Fix:            333               
+Bug Fix: <bug brief>
 Zen Tao: <zen tao id>
 MTK CR: <mtk cr no.>
 UNISOC CQ: <unisoc cq no.>

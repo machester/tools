@@ -22,9 +22,9 @@ UNISOC CQ: <unisoc cq no.>
 
 Detail Descriptions:
 	--- new feature descriptions
-Why:
+What:
 	--- what write information here bug
-How:
+Options:
 	--- options write information here bug
 Associated branch path：
 	--- please write Associated branch path if have
@@ -38,6 +38,10 @@ Detail Descriptions:
 	--- feature upgrade descriptions write information here bug
 What:
 	--- what write information here bug
+Why:
+	--- please write the reason why this bug occurs here
+How:
+	--- please write how you solve this bug here
 Options:
 	--- options write information here bug
 Associated branch path：
@@ -68,6 +72,10 @@ Detail Descriptions:
 	--- merge descriptions write information here bug
 What:
 	--- what write information here bug
+Why:
+	--- please write the reason why this bug occurs here
+How:
+	--- please write how you solve this bug here
 Options:
 	--- options write information here bug
 Associated branch path：
