@@ -47,10 +47,10 @@ commit_type_dic = {"1": "Bug Fix",
 #     "Detail Descriptions"   : "nope",
 #     "Why"                   : "nope",
 #     "How"                   : "nope",
-#     "Associated branch path": "nope",
+#     "Associated Branch Path": "nope",
 #     "What"                  : "nope",
 #     "Options"               : "nope",
-#     "Affected submission Id" : "nope"
+#     "Affected Submission Id" : "nope"
 # }
 
 help_info_container_dic = {
@@ -63,44 +63,44 @@ help_info_container_dic = {
 }
 
 commit_msg_container_dic_for_common_type = {
-    "Zen Tao": "nope",
-    "MTK CR": "nope",
-    "UNISOC CQ": "nope",
-    "Associated branch path": "nope",
+    "Zen Tao"  : "nope",
+    "MTK CR"   : "nope",
+    "UNISOC CQ": "nope"
 }
 
 commit_msg_container_dic_for_bug_fix = {
-    "Bug Fix": "nope",
-    "Detail Descriptions": "nope",
-    "Why": "nope",
-    "How": "nope",
-    "Affected submission Id": "nope"
+    "Bug Fix"               : "nope",
+    "Detail Descriptions"   : "nope",
+    "Why"                   : "nope",
+    "How"                   : "nope",
+    "Associated Branch Path": "nope"
 }
 
 commit_msg_container_dic_for_new_feature = {
-    "New Feature": "nope",
-    "Detail Descriptions": "nope",
-    "What": "nope",
-    "Options": "nope",
-    "Affected submission Id": "nope"
+    "New Feature"           : "nope",
+    "Detail Descriptions"   : "nope",
+    "What"                  : "nope",
+    "Options"               : "nope",
+    "Associated Branch Path": "nope"
 }
 
 commit_msg_container_dic_for_feature_upgrade = {
-    "Feature Upgrade": "nope",
-    "Detail Descriptions": "nope",
-    "What": "nope",
-    "Why": "nope",
-    "How": "nope",
-    "Options": "nope",
-    "Affected submission Id": "nope"
+    "Feature Upgrade"       : "nope",
+    "Detail Descriptions"   : "nope",
+    "What"                  : "nope",
+    "Why"                   : "nope",
+    "How"                   : "nope",
+    "Options"               : "nope",
+    "Associated Branch Path": "nope",
+    "Affected Submission Id": "nope"
 }
 
 commit_msg_container_dic_for_revert = {
-    "Revert": "nope",
-    "Detail Descriptions": "nope",
-    "Why": "nope",
-    "How": "nope",
-    "Affected submission Id": "nope"
+    "Revert"                : "nope",
+    "Detail Descriptions"   : "nope",
+    "Why"                   : "nope",
+    "How"                   : "nope",
+    "Associated Branch Path": "nope"
 }
 
 commit_msg_container_dic_for_merge = {
@@ -110,11 +110,12 @@ commit_msg_container_dic_for_merge = {
     "Why": "nope",
     "How": "nope",
     "Options": "nope",
-    "Affected submission Id": "nope"
+    "Associated Branch Path": "nope",
+    "Affected Submission Id": "nope"
 }
 
 
-# commit_multiline_info_list = ["Detail Descriptions" , "Why", "How", "Associated branch path" , "What", "Options", "Affected submission Id"]
+# commit_multiline_info_list = ["Detail Descriptions" , "Why", "How", "Associated Branch Path" , "What", "Options", "Affected Submission Id"]
 
 # commit_must_check_list = ["Bug Fix", "New Feature", "Feature Upgrade", "Revert", "Merge", "Detail Descriptions", "Why", "How"]
 
@@ -211,8 +212,8 @@ def got_not_must_check_info(file_path):
                 commit_msg_container_dic_for_common_type[report_info_mark] = report_info_mark_value
 
         # check if all items got data
-    for dic_value in commit_msg_container_dic_for_common_type.keys():
-        if ("nope" == dic_value):
+    for dic_key in commit_msg_container_dic_for_common_type.keys():
+        if ("nope" == commit_msg_container_dic_for_common_type[dic_key]):
             print("key:" + dic_key + "can not found in file: + " + file_path)
             return False
 
@@ -221,16 +222,15 @@ def got_not_must_check_info(file_path):
 
 # TODO:
 
-multi_line_info_list = [""]
-
-
 def bugfix_format_check(file_path):
-    info_start_line = -1
-    info_stop_line = -1
-    items_head_found = False
-    items_info_tail_found = False
-    reach_file_end = False
-    current_info_head = ""
+    # info_start_line = -1
+    # info_stop_line = -1
+    # items_head_found = False
+    # items_info_tail_found = False
+    # reach_file_end = False
+    # current_info_head = ""
+
+    pos_index_list=[]
 
     print("---> bugfix_format_check")
     ret_val = got_not_must_check_info(file_path)
@@ -238,7 +238,7 @@ def bugfix_format_check(file_path):
         return False
 
     with open(file_path, "rt", encoding="UTF-8") as fp:
-        for line_index, data in enumerate(fp, start=1):
+        for line_index, data in enumerate(fp, start = 1):
 
             data.strip()
             value_start_position = data.find(VALUE_CUT_MARK)
@@ -246,10 +246,7 @@ def bugfix_format_check(file_path):
             report_info_mark_value = data[(value_start_position + 1):]
             # remove left and right space
             report_info_mark_value = report_info_mark_value.strip()
-            # print("report_info_mark len:" + str(len(report_info_mark)) + " value:"
-            #       + report_info_mark + "; " + "report_info_mark_value len: "
-            #       + str(len(report_info_mark_value)) + " , value: " + report_info_mark_value)
-            # print("----------------------------------------------------------------------------------")
+            print("line:" + str(line_index) + ": " + report_info_mark + ": " + report_info_mark_value)
             # check report type start, first check
             # check which report type it is
             # ATTENTION: force check "Bug Fix" on file first line
@@ -258,43 +255,54 @@ def bugfix_format_check(file_path):
                 commit_msg_container_dic_for_bug_fix[report_info_mark] = report_info_mark_value
                
             else:
+                """store every key line position to dic"""
                 for x_key in commit_msg_container_dic_for_bug_fix.keys():
                     """find if items in defined dic, these are multi-line info"""
                     if x_key == report_info_mark:
-                        info_start_line = line_index    # items start
-                        print(report_info_mark + " : start line: " + str(line_index))
-                        items_head_found = True
-                        current_info_head = report_info_mark
-                        break
-                    elif(items_head_found) and (False == items_info_tail_found) and (VALUE_CUT_MARK in data):
-                        """start to found target items info tail"""
-                        print("stop line: " + str(line_index))
-                        info_stop_line = line_index
-                        items_info_tail_found = True
-                
-            # store info messagge
-            if items_head_found and (False == items_info_tail_found):
-                print("----------------------- multi_line_info_list S ------------------------------")
-                multi_line_info_list.append(data.strip())
-                for x in multi_line_info_list:
-                    print(x)
-                print("-------------------------multi_line_info_list E ----------------------------")
+                        print("---> start line: " + report_info_mark + " : " + str(line_index))
+                        commit_msg_container_dic_for_bug_fix[report_info_mark] = str(line_index)
+                        pos_index_list.append(line_index)
 
-            # move the start and stop line to point to info
-            if (False == items_info_tail_found) or (info_start_line < info_stop_line):
-                print("error: can not found: " + report_info_mark + " info")
-                # return False
-            elif (items_info_tail_found) and (reach_file_end):
-                items_info_tail_found = False
-                for x in multi_line_info_list:
-                    commit_msg_container_dic_for_bug_fix[current_info_head] += multi_line_info_list[x]
-                report_info_mark = "nope"
+        # show position index list
+        print(list(pos_index_list))
 
-        print("============================ S ========================================")
-        for dic_key, dic_value in commit_msg_container_dic_for_bug_fix.items():
-            print(dic_key + " : " + dic_value)
-        print("============================= E ========================================")
+    shell_print_start_line = ""
+    shell_print_stop_line = ""
+
+    # COMMIT_MSG_CONTAINER=`sed -ne "$HOW_INFO_START_LINE,$HOW_INFO_END_LINE p" $COMMIT_FILE`
+    tmp_file_path = cur_work_abs_path + "/tmp.txt"
+    tmp_shell_cmd = "touch " + tmp_file_path
+    do_shell_cmd(tmp_shell_cmd)
+
+    for index in pos_index_list :
+        shell_print_start_line = str(int(pos_index_list[index]) + 1)
+        print("shell_print_start_line: " + shell_print_start_line)
+        if int(index) == len(pos_index_list) - 1 :
+            """reach file end"""
+            shell_print_stop_line = "50"
+        else:
+            shell_print_stop_line = str(int(pos_index_list[index + 1]) - 1)
+            
+        print("shell_print_stop_line: " + shell_print_stop_line)
+
+        tmp_shell_cmd = "sed -ne " + shell_print_start_line + " " +  shell_print_stop_line + " p" + commit_file_path + " > " + tmp_file_path
+        print("----> shell cmd: " + tmp_shell_cmd)
+
+        for dic_key, dic_value in commit_msg_container_dic_for_bug_fix.items() :
+            if dic_value < shell_print_stop_line and dic_value > shell_print_start_line :
+                with open(tmp_file_path, "wt", encoding="UTF-8") as tmp_fp:
+                    for line_index, data in enumerate(fp, start = 1):
+                        
+                        linecache.clearcache()
+                        commit_msg_container_dic_for_bug_fix[dic_key] = linecache.getline(tmp_file_path, line_index)
+    
+    print("============================ S ========================================")
+    for dic_key, dic_value in commit_msg_container_dic_for_bug_fix.items():
+        print(dic_key + " : " + dic_value)
+    print("============================= E ========================================")
     return True
+
+
 
 
 def new_feature_format_check(file_path):

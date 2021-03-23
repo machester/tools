@@ -12,8 +12,8 @@ Why:
 	--- please write the reason why this bug occurs here
 How:
 	--- please write how you solve this bug here
-Associated branch path：
-	--- please write Associated branch path if have
+Associated Branch Path:
+	--- please write Associated Branch Path if have
 ===============================================================
 New Feature: <new feature brief write information here bug>
 Zen Tao: <zen tao id>
@@ -26,8 +26,8 @@ What:
 	--- what write information here bug
 Options:
 	--- options write information here bug
-Associated branch path：
-	--- please write Associated branch path if have
+Associated Branch Path:
+	--- please write Associated Branch Path if have
 ===============================================================
 Feature Upgrade: <feature upgrade brief write information here bug>
 Zen Tao: <zen tao id>
@@ -44,9 +44,9 @@ How:
 	--- please write how you solve this bug here
 Options:
 	--- options write information here bug
-Associated branch path：
-	--- please write Associated branch path if have
-Affected submission Id:
+Associated Branch Path:
+	--- please write Associated Branch Path if have
+Affected Submission Id:
 	--- please write Associated Id
 ===============================================================
 Revert: <revert brief write information here bug>
@@ -60,8 +60,8 @@ Why:
 	--- what write information here bug
 How:
 	--- please write why you need rever commit here
-Associated branch path：
-	--- please write Associated branch path if have
+Associated Branch Path:
+	--- please write Associated Branch Path if have
 ===============================================================
 Merge: <merge brief write information here bug>
 Zen Tao: <zen tao id>
@@ -78,6 +78,6 @@ How:
 	--- please write how you solve this bug here
 Options:
 	--- options write information here bug
-Associated branch path：
-	--- please write Associated branch path if have
+Associated Branch Path:
+	--- please write Associated Branch Path if have
 ===============================================================

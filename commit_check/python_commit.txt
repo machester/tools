@@ -8,5 +8,5 @@ Why:
 --- please write the reason why this bug occurs here
 How:
 --- please write how you solve this bug here
-Associated branch path：
---- please write Associated branch path if have
+Associated Branch Path:
+--- please write Associated Branch Path if have
