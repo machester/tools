@@ -114,7 +114,7 @@ commit_msg_container_dic_for_merge = {
     "Affected Submission Id": "nope"
 }
 
-
+cmit_msg = "\n"
 # commit_multiline_info_list = ["Detail Descriptions" , "Why", "How", "Associated Branch Path" , "What", "Options", "Affected Submission Id"]
 
 # commit_must_check_list = ["Bug Fix", "New Feature", "Feature Upgrade", "Revert", "Merge", "Detail Descriptions", "Why", "How"]
@@ -133,10 +133,16 @@ def do_shell_cmd(shell_cmd):
         print("error: shell cmd: " + shell_cmd)
         return (-1)
 
+def store_info_to_param(msg_key, msg_value, value_store_nextline = False):
+    global cmit_msg
+    cmit_msg += msg_key + ": "
+    if value_store_nextline:
+        cmit_msg += "\n\t"
+    cmit_msg += msg_value.strip()
+    cmit_msg += "\n"
 
 def is_file_exist(path_name):
     try:
-        # print("ready to check path: < " + path_name + " > if exist")
         if not (os.path.exists(path_name)):
             print("not exist")
             return False
@@ -156,17 +162,12 @@ def read_and_print_file(path_name):
         print("=========================================================================")
 
 
-def do_commit(file_path):
-    commit_msg = ""
+def do_commit(commit_message):
 
-    with open(file_path, "rt", encoding="UTF-8") as fp:
-        for data in fp:
-            data.strip()
-            commit_msg += data
-
-    tmp_shell_cmd = "git commit -sm\n" + commit_msg
+    tmp_shell_cmd = "git commit -sm \"" + commit_message + "\""
     ret_val = do_shell_cmd(tmp_shell_cmd)
     if (-1 != ret_val):
+        print("\n------------- commit finished -----------------\n")
         return True
     else:
         return False
@@ -203,33 +204,22 @@ def got_not_must_check_info(file_path):
             report_info_mark_value = data[(value_start_position + 1):]
             # remove left and right space
             report_info_mark_value = report_info_mark_value.strip()
-            # print ("report_info_mark len:" + str(len(report_info_mark)) + " value:"
-            #         + report_info_mark + "; " +  "report_info_mark_value len: "
-            #         + str (len (report_info_mark_value)) + " , value: " + report_info_mark_value)
-
+        
             # store value
-            for report_info_mark in commit_msg_container_dic_for_common_type.keys():
-                commit_msg_container_dic_for_common_type[report_info_mark] = report_info_mark_value
-
+            for comm_key in commit_msg_container_dic_for_common_type.keys():
+                if comm_key == report_info_mark :
+                    commit_msg_container_dic_for_common_type[report_info_mark] = report_info_mark_value
+                
         # check if all items got data
-    for dic_key in commit_msg_container_dic_for_common_type.keys():
+    for dic_key, dic_value in commit_msg_container_dic_for_common_type.items():
         if ("nope" == commit_msg_container_dic_for_common_type[dic_key]):
-            print("key:" + dic_key + "can not found in file: + " + file_path)
+            print("key:" + dic_key + ", can not found in file: + " + file_path)
             return False
 
     return True
 
-
-# TODO:
-
 def bugfix_format_check(file_path):
-    # info_start_line = -1
-    # info_stop_line = -1
-    # items_head_found = False
-    # items_info_tail_found = False
-    # reach_file_end = False
-    # current_info_head = ""
-
+    
     pos_index_list=[]
 
     print("---> bugfix_format_check")
@@ -243,105 +233,440 @@ def bugfix_format_check(file_path):
             data.strip()
             value_start_position = data.find(VALUE_CUT_MARK)
             report_info_mark = data[0: value_start_position]
+            
             report_info_mark_value = data[(value_start_position + 1):]
             # remove left and right space
-            report_info_mark_value = report_info_mark_value.strip()
-            print("line:" + str(line_index) + ": " + report_info_mark + ": " + report_info_mark_value)
             # check report type start, first check
             # check which report type it is
             # ATTENTION: force check "Bug Fix" on file first line
+            # for type_dic_value in commit_msg_container_dic_for_bug_fix.values() :
             if (report_info_mark == commit_type_dic["1"]):
-                print("store key: " + report_info_mark +" ; value: " + report_info_mark_value)
                 commit_msg_container_dic_for_bug_fix[report_info_mark] = report_info_mark_value
-               
+                store_info_to_param(report_info_mark, report_info_mark_value, False)
+                continue
+            
             else:
                 """store every key line position to dic"""
                 for x_key in commit_msg_container_dic_for_bug_fix.keys():
                     """find if items in defined dic, these are multi-line info"""
                     if x_key == report_info_mark:
-                        print("---> start line: " + report_info_mark + " : " + str(line_index))
                         commit_msg_container_dic_for_bug_fix[report_info_mark] = str(line_index)
                         pos_index_list.append(line_index)
-
-        # show position index list
-        print(list(pos_index_list))
 
     shell_print_start_line = ""
     shell_print_stop_line = ""
 
-    # COMMIT_MSG_CONTAINER=`sed -ne "$HOW_INFO_START_LINE,$HOW_INFO_END_LINE p" $COMMIT_FILE`
     tmp_file_path = cur_work_abs_path + "/tmp.txt"
-    tmp_shell_cmd = "touch " + tmp_file_path
-    do_shell_cmd(tmp_shell_cmd)
 
-    for index in pos_index_list :
-        shell_print_start_line = str(int(pos_index_list[index]) + 1)
-        print("shell_print_start_line: " + shell_print_start_line)
-        if int(index) == len(pos_index_list) - 1 :
+    for index in range(0, len(pos_index_list)) :
+        shell_print_start_line = str(pos_index_list[index] + 1)
+
+        if index == len(pos_index_list) - 1 :
             """reach file end"""
             shell_print_stop_line = "50"
         else:
-            shell_print_stop_line = str(int(pos_index_list[index + 1]) - 1)
-            
-        print("shell_print_stop_line: " + shell_print_stop_line)
+            shell_print_stop_line = str(pos_index_list[index + 1] - 1)
 
-        tmp_shell_cmd = "sed -ne " + shell_print_start_line + " " +  shell_print_stop_line + " p" + commit_file_path + " > " + tmp_file_path
-        print("----> shell cmd: " + tmp_shell_cmd)
+        tmp_shell_cmd = "sed -ne '" + shell_print_start_line + "," +  shell_print_stop_line + " p' " + commit_file_path + " > " + tmp_file_path
 
+        do_shell_cmd(tmp_shell_cmd)
+        
         for dic_key, dic_value in commit_msg_container_dic_for_bug_fix.items() :
-            if dic_value < shell_print_stop_line and dic_value > shell_print_start_line :
-                with open(tmp_file_path, "wt", encoding="UTF-8") as tmp_fp:
-                    for line_index, data in enumerate(fp, start = 1):
-                        
+            try:
+                (int(dic_value))
+            except (ValueError):
+                # print("detect report mark key index 1")
+                continue
+            
+            if ((int(dic_value) + 1) <= int(shell_print_stop_line)) and ((int(dic_value) + 1) >= int(shell_print_start_line)) :
+                """clean"""
+                commit_msg_container_dic_for_bug_fix[dic_key] = "\n"
+                with open(tmp_file_path, "rt", encoding="UTF-8") as tmp_fp:
+                    for line_index, data in enumerate(tmp_fp, start = 1):
                         linecache.clearcache()
-                        commit_msg_container_dic_for_bug_fix[dic_key] = linecache.getline(tmp_file_path, line_index)
-    
-    print("============================ S ========================================")
+                        commit_msg_container_dic_for_bug_fix[dic_key] += linecache.getline(tmp_file_path, line_index)
+
+    # check all message have got
+    for dic_key, dic_value in commit_msg_container_dic_for_bug_fix.items() :
+        if (len(dic_value) < MINI_INFO_LEN) :
+            print(dic_key + "value is empty " + ", value: " + dic_value)
+            return False
+
+    # store msg
+    for dic_key, dic_value in commit_msg_container_dic_for_common_type.items():
+        store_info_to_param(dic_key, dic_value, False)
+
+    need_skip_flag = False
+
     for dic_key, dic_value in commit_msg_container_dic_for_bug_fix.items():
-        print(dic_key + " : " + dic_value)
-    print("============================= E ========================================")
-    return True
+        if (dic_key == commit_type_dic["1"]):
+            continue
+        else :
+            store_info_to_param(dic_key, dic_value, True)
 
+    tmp_shell_cmd =  "rm -f " + tmp_file_path
+    do_shell_cmd(tmp_shell_cmd)
 
-
+    return (do_commit(cmit_msg))
 
 def new_feature_format_check(file_path):
+    pos_index_list=[]
+
     print("---> new_feature_format_check")
     ret_val = got_not_must_check_info(file_path)
     if False == ret_val:
         return False
 
-    return True
+    with open(file_path, "rt", encoding="UTF-8") as fp:
+        for line_index, data in enumerate(fp, start = 1):
+
+            data.strip()
+            value_start_position = data.find(VALUE_CUT_MARK)
+            report_info_mark = data[0: value_start_position]
+            
+            report_info_mark_value = data[(value_start_position + 1):]
+            # remove left and right space
+            # check report type start, first check
+            # check which report type it is
+            # ATTENTION: force check "Bug Fix" on file first line
+            # TODO: find way to remove commit_type_dic["X"]
+            if (report_info_mark == commit_type_dic["2"]):
+                commit_msg_container_dic_for_new_feature[report_info_mark] = report_info_mark_value
+                store_info_to_param(report_info_mark, report_info_mark_value, False)
+                continue
+            
+            else:
+                """store every key line position to dic"""
+                for x_key in commit_msg_container_dic_for_new_feature.keys():
+                    """find if items in defined dic, these are multi-line info"""
+
+                    if x_key == report_info_mark:
+                        commit_msg_container_dic_for_new_feature[report_info_mark] = str(line_index)
+                        pos_index_list.append(line_index)
+
+    shell_print_start_line = ""
+    shell_print_stop_line = ""
+
+    tmp_file_path = cur_work_abs_path + "/tmp.txt"
+
+    for index in range(0, len(pos_index_list)) :
+        shell_print_start_line = str(pos_index_list[index] + 1)
+        if index == len(pos_index_list) - 1 :
+            """reach file end"""
+            shell_print_stop_line = "50"
+        else:
+            shell_print_stop_line = str(pos_index_list[index + 1] - 1)
+
+        tmp_shell_cmd = "sed -ne '" + shell_print_start_line + "," +  shell_print_stop_line + " p' " + commit_file_path + " > " + tmp_file_path
+        do_shell_cmd(tmp_shell_cmd)
+        
+        for dic_key, dic_value in commit_msg_container_dic_for_new_feature.items() :
+            try:
+                (int(dic_value))
+            except (ValueError):
+                continue
+            
+            if ((int(dic_value) + 1) <= int(shell_print_stop_line)) and ((int(dic_value) + 1) >= int(shell_print_start_line)) :
+                """clean"""
+                commit_msg_container_dic_for_new_feature[dic_key] = "\n"
+                with open(tmp_file_path, "rt", encoding="UTF-8") as tmp_fp:
+                    for line_index, data in enumerate(tmp_fp, start = 1):
+                        linecache.clearcache()
+                        commit_msg_container_dic_for_new_feature[dic_key] += linecache.getline(tmp_file_path, line_index)
+
+    # check all message have got
+    for dic_key, dic_value in commit_msg_container_dic_for_new_feature.items() :
+        if (len(dic_value) < MINI_INFO_LEN) :
+            print(dic_key + "value is empty " + ", value: " + dic_value)
+            return False
+
+    # store msg
+    for dic_key, dic_value in commit_msg_container_dic_for_common_type.items():
+        store_info_to_param(dic_key, dic_value, False)
+
+    need_skip_flag = False
+
+    for dic_key, dic_value in commit_msg_container_dic_for_new_feature.items():
+        if (dic_key == commit_type_dic["2"]):
+            continue
+        else :
+            store_info_to_param(dic_key, dic_value, True)
+
+    tmp_shell_cmd =  "rm -f " + tmp_file_path
+    do_shell_cmd(tmp_shell_cmd)
+
+    return (do_commit(cmit_msg))
 
 
 def feature_upgrade_format_check(file_path):
+
+    pos_index_list=[]
+
     print("---> feature_upgrade_format_check")
     ret_val = got_not_must_check_info(file_path)
     if False == ret_val:
         return False
 
-    return True
+    with open(file_path, "rt", encoding="UTF-8") as fp:
+        for line_index, data in enumerate(fp, start = 1):
+
+            data.strip()
+            value_start_position = data.find(VALUE_CUT_MARK)
+            report_info_mark = data[0: value_start_position]
+            
+            report_info_mark_value = data[(value_start_position + 1):]
+            # remove left and right space
+            # check report type start, first check
+            # check which report type it is
+            # ATTENTION: force check "Bug Fix" on file first line
+            # TODO: find way to remove commit_type_dic["X"]
+            if (report_info_mark == commit_type_dic["3"]):
+                commit_msg_container_dic_for_feature_upgrade[report_info_mark] = report_info_mark_value
+                store_info_to_param(report_info_mark, report_info_mark_value, False)
+                continue
+            
+            else:
+                """store every key line position to dic"""
+                for x_key in commit_msg_container_dic_for_feature_upgrade.keys():
+                    """find if items in defined dic, these are multi-line info"""
+
+                    if x_key == report_info_mark:
+                        commit_msg_container_dic_for_feature_upgrade[report_info_mark] = str(line_index)
+                        pos_index_list.append(line_index)
+
+    shell_print_start_line = ""
+    shell_print_stop_line = ""
+
+    tmp_file_path = cur_work_abs_path + "/tmp.txt"
+
+    for index in range(0, len(pos_index_list)) :
+        shell_print_start_line = str(pos_index_list[index] + 1)
+        if index == len(pos_index_list) - 1 :
+            """reach file end"""
+            shell_print_stop_line = "50"
+        else:
+            shell_print_stop_line = str(pos_index_list[index + 1] - 1)
+
+        tmp_shell_cmd = "sed -ne '" + shell_print_start_line + "," +  shell_print_stop_line + " p' " + commit_file_path + " > " + tmp_file_path
+        do_shell_cmd(tmp_shell_cmd)
+        
+        for dic_key, dic_value in commit_msg_container_dic_for_feature_upgrade.items() :
+            try:
+                (int(dic_value))
+            except (ValueError):
+                continue
+            
+            if ((int(dic_value) + 1) <= int(shell_print_stop_line)) and ((int(dic_value) + 1) >= int(shell_print_start_line)) :
+                """clean"""
+                commit_msg_container_dic_for_feature_upgrade[dic_key] = "\n"
+                with open(tmp_file_path, "rt", encoding="UTF-8") as tmp_fp:
+                    for line_index, data in enumerate(tmp_fp, start = 1):
+                        linecache.clearcache()
+                        commit_msg_container_dic_for_feature_upgrade[dic_key] += linecache.getline(tmp_file_path, line_index)
+
+    # check all message have got
+    for dic_key, dic_value in commit_msg_container_dic_for_feature_upgrade.items() :
+        if (len(dic_value) < MINI_INFO_LEN) :
+            print(dic_key + "value is empty " + ", value: " + dic_value)
+            return False
+
+    # store msg
+    for dic_key, dic_value in commit_msg_container_dic_for_common_type.items():
+        store_info_to_param(dic_key, dic_value, False)
+
+    need_skip_flag = False
+
+    for dic_key, dic_value in commit_msg_container_dic_for_feature_upgrade.items():
+        if (dic_key == commit_type_dic["3"]):
+            continue
+        else :
+            store_info_to_param(dic_key, dic_value, True)
+
+    tmp_shell_cmd =  "rm -f " + tmp_file_path
+    do_shell_cmd(tmp_shell_cmd)
+
+    return (do_commit(cmit_msg))
 
 
 def revert_format_check(file_path):
+
+    pos_index_list=[]
+
     print("---> revert_format_check")
     ret_val = got_not_must_check_info(file_path)
     if False == ret_val:
         return False
 
-    return True
+    with open(file_path, "rt", encoding="UTF-8") as fp:
+        for line_index, data in enumerate(fp, start = 1):
+
+            data.strip()
+            value_start_position = data.find(VALUE_CUT_MARK)
+            report_info_mark = data[0: value_start_position]
+            
+            report_info_mark_value = data[(value_start_position + 1):]
+            # remove left and right space
+            # check report type start, first check
+            # check which report type it is
+            # ATTENTION: force check "Bug Fix" on file first line
+            # TODO: find way to remove commit_type_dic["X"]
+            if (report_info_mark == commit_type_dic["4"]):
+                commit_msg_container_dic_for_revert[report_info_mark] = report_info_mark_value
+                store_info_to_param(report_info_mark, report_info_mark_value, False)
+                continue
+            
+            else:
+                """store every key line position to dic"""
+                for x_key in commit_msg_container_dic_for_revert.keys():
+                    """find if items in defined dic, these are multi-line info"""
+
+                    if x_key == report_info_mark:
+                        commit_msg_container_dic_for_revert[report_info_mark] = str(line_index)
+                        pos_index_list.append(line_index)
+
+    shell_print_start_line = ""
+    shell_print_stop_line = ""
+
+    tmp_file_path = cur_work_abs_path + "/tmp.txt"
+
+    for index in range(0, len(pos_index_list)) :
+        shell_print_start_line = str(pos_index_list[index] + 1)
+        if index == len(pos_index_list) - 1 :
+            """reach file end"""
+            shell_print_stop_line = "50"
+        else:
+            shell_print_stop_line = str(pos_index_list[index + 1] - 1)
+
+        tmp_shell_cmd = "sed -ne '" + shell_print_start_line + "," +  shell_print_stop_line + " p' " + commit_file_path + " > " + tmp_file_path
+        do_shell_cmd(tmp_shell_cmd)
+        
+        for dic_key, dic_value in commit_msg_container_dic_for_revert.items() :
+            try:
+                (int(dic_value))
+            except (ValueError):
+                continue
+            
+            if ((int(dic_value) + 1) <= int(shell_print_stop_line)) and ((int(dic_value) + 1) >= int(shell_print_start_line)) :
+                """clean"""
+                commit_msg_container_dic_for_revert[dic_key] = "\n"
+                with open(tmp_file_path, "rt", encoding="UTF-8") as tmp_fp:
+                    for line_index, data in enumerate(tmp_fp, start = 1):
+                        linecache.clearcache()
+                        commit_msg_container_dic_for_revert[dic_key] += linecache.getline(tmp_file_path, line_index)
+
+    # check all message have got
+    for dic_key, dic_value in commit_msg_container_dic_for_revert.items() :
+        if (len(dic_value) < MINI_INFO_LEN) :
+            print(dic_key + "value is empty " + ", value: " + dic_value)
+            return False
+
+    # store msg
+    for dic_key, dic_value in commit_msg_container_dic_for_common_type.items():
+        store_info_to_param(dic_key, dic_value, False)
+
+    need_skip_flag = False
+
+    for dic_key, dic_value in commit_msg_container_dic_for_revert.items():
+        if (dic_key == commit_type_dic["4"]):
+            continue
+        else :
+            store_info_to_param(dic_key, dic_value, True)
+
+    tmp_shell_cmd =  "rm -f " + tmp_file_path
+    do_shell_cmd(tmp_shell_cmd)
+
+    return (do_commit(cmit_msg))
 
 
 def merge_format_check(file_path):
+    
+    pos_index_list=[]
+
     print("---> merge_format_check")
     ret_val = got_not_must_check_info(file_path)
     if False == ret_val:
         return False
 
-    return True
+    with open(file_path, "rt", encoding="UTF-8") as fp:
+        for line_index, data in enumerate(fp, start = 1):
 
+            data.strip()
+            value_start_position = data.find(VALUE_CUT_MARK)
+            report_info_mark = data[0: value_start_position]
+            
+            report_info_mark_value = data[(value_start_position + 1):]
+            # remove left and right space
+            # check report type start, first check
+            # check which report type it is
+            # ATTENTION: force check "Bug Fix" on file first line
+            # TODO: find way to remove commit_type_dic["X"]
+            if (report_info_mark == commit_type_dic["5"]):
+                commit_msg_container_dic_for_merge[report_info_mark] = report_info_mark_value
+                store_info_to_param(report_info_mark, report_info_mark_value, False)
+                continue
+            
+            else:
+                """store every key line position to dic"""
+                for x_key in commit_msg_container_dic_for_merge.keys():
+                    """find if items in defined dic, these are multi-line info"""
 
-# TODO:
+                    if x_key == report_info_mark:
+                        commit_msg_container_dic_for_merge[report_info_mark] = str(line_index)
+                        pos_index_list.append(line_index)
+
+    shell_print_start_line = ""
+    shell_print_stop_line = ""
+
+    tmp_file_path = cur_work_abs_path + "/tmp.txt"
+
+    for index in range(0, len(pos_index_list)) :
+        shell_print_start_line = str(pos_index_list[index] + 1)
+        if index == len(pos_index_list) - 1 :
+            """reach file end"""
+            shell_print_stop_line = "50"
+        else:
+            shell_print_stop_line = str(pos_index_list[index + 1] - 1)
+
+        tmp_shell_cmd = "sed -ne '" + shell_print_start_line + "," +  shell_print_stop_line + " p' " + commit_file_path + " > " + tmp_file_path
+        do_shell_cmd(tmp_shell_cmd)
+        
+        for dic_key, dic_value in commit_msg_container_dic_for_merge.items() :
+            try:
+                (int(dic_value))
+            except (ValueError):
+                continue
+            
+            if ((int(dic_value) + 1) <= int(shell_print_stop_line)) and ((int(dic_value) + 1) >= int(shell_print_start_line)) :
+                """clean"""
+                commit_msg_container_dic_for_merge[dic_key] = "\n"
+                with open(tmp_file_path, "rt", encoding="UTF-8") as tmp_fp:
+                    for line_index, data in enumerate(tmp_fp, start = 1):
+                        linecache.clearcache()
+                        commit_msg_container_dic_for_merge[dic_key] += linecache.getline(tmp_file_path, line_index)
+
+    # check all message have got
+    for dic_key, dic_value in commit_msg_container_dic_for_merge.items() :
+        if (len(dic_value) < MINI_INFO_LEN) :
+            print(dic_key + "value is empty " + ", value: " + dic_value)
+            return False
+
+    # store msg
+    for dic_key, dic_value in commit_msg_container_dic_for_common_type.items():
+        store_info_to_param(dic_key, dic_value, False)
+
+    need_skip_flag = False
+
+    for dic_key, dic_value in commit_msg_container_dic_for_merge.items():
+        if (dic_key == commit_type_dic["5"]):
+            continue
+        else :
+            store_info_to_param(dic_key, dic_value, True)
+
+    tmp_shell_cmd =  "rm -f " + tmp_file_path
+    do_shell_cmd(tmp_shell_cmd)
+
+    return (do_commit(cmit_msg))
+
 
 def format_check_commit(file_path):
     report_mark = ""
@@ -479,7 +804,7 @@ while (False == commit_check_finished_flag) and (False == commit_template_create
         print("\nCurrent commit msg:\n")
         read_and_print_file(commit_file_path)
         print("Do you need current commit file message to commit")
-        user_input = input("Enter y or n: ")
+        user_input = input("Enter y or n, for help input help: ")
 
         if (user_input.lower() == "help"):
             print(help_info_container_dic["help"])
@@ -489,7 +814,7 @@ while (False == commit_check_finished_flag) and (False == commit_template_create
             ret_val = format_check_commit(commit_file_path)
             if ret_val:
                 commit_check_finished_flag = True
-                do_commit(commit_file_path)
+
                 break
             else:
                 commit_check_finished_flag = True
