@@ -781,16 +781,11 @@ def get_and_create_match_template(search_str):
 print("CUR_PATH: ")
 print("\t ---> " + cur_work_abs_path)
 
-usr_val = do_shell_cmd("ls -all")
-if (-1 != usr_val):
-    print(usr_val)
+# usr_val = do_shell_cmd("ls -all")
+# if (-1 != usr_val):
+#     print(usr_val)
 
 print("Software Version: " + VERSION)
-
-print("support commit type:")
-for key, value in commit_type_dic.items():
-    print(key + ". " + value)
-print("================================")
 
 loop_time = 0
 commit_template_created_flag = False
@@ -798,6 +793,11 @@ commit_check_finished_flag = False
 
 while (False == commit_check_finished_flag) and (False == commit_template_created_flag) and (loop_time < 3):
     loop_time += 1
+
+    print("support commit type:")
+    for key, value in commit_type_dic.items():
+        print(key + ". " + value)
+    print("===================================================")
 
     if is_file_exist(commit_file_path):
         format_commit_file(commit_file_path)
@@ -814,7 +814,6 @@ while (False == commit_check_finished_flag) and (False == commit_template_create
             ret_val = format_check_commit(commit_file_path)
             if ret_val:
                 commit_check_finished_flag = True
-
                 break
             else:
                 commit_check_finished_flag = True
@@ -851,6 +850,7 @@ while (False == commit_check_finished_flag) and (False == commit_template_create
                 print("input error")
                 # pass
         if loop_ticks == 3:
+            print("too much input errors, exit.")
             exit(-1)
 
 # if __name__ == '__main__':
