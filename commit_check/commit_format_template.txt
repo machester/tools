@@ -1,7 +1,7 @@
 Format Description:
 	format description
 ===============================================================
-Bug Fix: <bug brief>
+Bug Fix: <brief descriptions>
 Zen Tao: <zen tao id>
 MTK CR: <mtk cr no.>
 UNISOC CQ: <unisoc cq no.>
@@ -12,72 +12,66 @@ Why:
 	--- please write the reason why this bug occurs here
 How:
 	--- please write how you solve this bug here
-Associated Branch Path:
-	--- please write Associated Branch Path if have
-===============================================================
-New Feature: <new feature brief write information here bug>
-Zen Tao: <zen tao id>
-MTK CR: <mtk cr no.>
-UNISOC CQ: <unisoc cq no.>
-
-Detail Descriptions:
-	--- new feature descriptions
-What:
-	--- what write information here bug
 Options:
-	--- options write information here bug
+	--- please write other information here
 Associated Branch Path:
-	--- please write Associated Branch Path if have
+	--- please write Associated Branch Path here
 ===============================================================
-Feature Upgrade: <feature upgrade brief write information here bug>
+New Feature: <brief descriptions>
 Zen Tao: <zen tao id>
 MTK CR: <mtk cr no.>
 UNISOC CQ: <unisoc cq no.>
 
 Detail Descriptions:
-	--- feature upgrade descriptions write information here bug
-What:
-	--- what write information here bug
+	--- please write the descriptions of this feature in detail here
+Options:
+	--- please write other information here
+Associated Branch Path:
+	--- please write Associated Branch Path here
+===============================================================
+Feature Upgrade: <brief descriptions>
+Zen Tao: <zen tao id>
+MTK CR: <mtk cr no.>
+UNISOC CQ: <unisoc cq no.>
+
+Detail Descriptions:
+	--- please write the upgrade information here
 Why:
-	--- please write the reason why this bug occurs here
+	--- please write the reason why you need upgrade here
 How:
-	--- please write how you solve this bug here
+	--- please write how here
 Options:
-	--- options write information here bug
+	--- please write other information here
 Associated Branch Path:
-	--- please write Associated Branch Path if have
+	--- please write Associated Branch Path here
 Affected Submission Id:
-	--- please write Associated Id
+	--- please write the Submission Id you'v commited before here
 ===============================================================
-Revert: <revert brief write information here bug>
+Revert: <brief descriptions>
 Zen Tao: <zen tao id>
 MTK CR: <mtk cr no.>
 UNISOC CQ: <unisoc cq no.>
 
 Detail Descriptions:
-	--- revert descriptions write information here bug
+	--- please write the descriptions of this operation in detail here
 Why:
-	--- what write information here bug
+	--- please write the reason why you need revert here
 How:
-	--- please write why you need rever commit here
+	--- please write how you solve this problem here
+Options:
+	--- please write other information here
 Associated Branch Path:
-	--- please write Associated Branch Path if have
+	--- please write Associated Branch Path here
 ===============================================================
-Merge: <merge brief write information here bug>
+Merge: <brief descriptions>
 Zen Tao: <zen tao id>
 MTK CR: <mtk cr no.>
 UNISOC CQ: <unisoc cq no.>
 
 Detail Descriptions:
-	--- merge descriptions write information here bug
-What:
-	--- what write information here bug
-Why:
-	--- please write the reason why this bug occurs here
-How:
-	--- please write how you solve this bug here
+	--- please write the descriptions of this operation in detail here including vendor TAG
 Options:
 	--- options write information here bug
 Associated Branch Path:
-	--- please write Associated Branch Path if have
+	--- please write Associated Branch Path here
 ===============================================================
