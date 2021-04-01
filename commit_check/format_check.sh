@@ -44,7 +44,10 @@ fi
 git diff-index --check --cached $against --
 # exec git diff-index --check --cached $against --
 echo "---> run return value:" $?
-
+# keep LF format
+# git config --global core.autocrlf input
+# forbidden if file line end with CRLF
+git config --global core.safecrlf true
 ### do python program check
 python3 format_check.py
 
@@ -52,6 +55,6 @@ if [ $? -ne 0 ]
 then
     echo "---------------------------------- format check failed ! ----------------------------------"
 else 
-    echo "---------------------------------- commit pass ----------------------------------"
+    echo "---------------------------------- END----------------------------------"
 fi
 #################################### END LINE ####################################

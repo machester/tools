@@ -9,16 +9,22 @@ import subprocess
 import linecache
 
 
-VERSION = "1.0"
+# encode, decode
+# import chardet
 
-# template_file_path = "/mnt/d/code/github/tools/commit_check/commit_format_template.txt"
-# commit_file_path = "/mnt/d/code/github/tools/commit_check/python_commit.txt"
+
+VERSION = "1.1"
+UPGRADE_DATE = "2021-04-01"
+
+# template_file_path = cur_work_abs_path + "/commit_format_template.txt"
+# commit_file_path = cur_work_abs_path + "/commit.txt"
 
 cur_work_abs_path = os.path.abspath ( '.' )
 
 # for test
+commit_file_name = "commit.txt"
 template_file_path = cur_work_abs_path + "/commit_format_template.txt"
-commit_file_path = cur_work_abs_path + "/python_commit.txt"
+commit_file_path = ""
 
 DIVID_MARK = "======"
 VALUE_CUT_MARK = ":"
@@ -34,25 +40,6 @@ commit_type_dic = { "1": "Bug Fix",
                     "5": "Merge"
                     }
 
-# commit_msg_container_dic = {
-#     "Bug Fix"               : "nope",
-#     "New Feature"           : "nope",
-#     "Feature Upgrade"       : "nope",
-#     "Revert"                : "nope",
-#     "Merge"                 : "nope",
-
-#     "Zen Tao"               : "nope",
-#     "MTK CR"                : "nope",
-#     "UNISOC CQ"             : "nope",
-
-#     "Detail Descriptions"   : "nope",
-#     "Why"                   : "nope",
-#     "How"                   : "nope",
-#     "Associated Branch Path": "nope",
-#     "What"                  : "nope",
-#     "Options"               : "nope",
-#     "Affected Submission Id" : "nope"
-# }
 
 help_info_container_dic = {
 	"help" : "\
@@ -80,7 +67,6 @@ commit_msg_container_dic_for_bug_fix = {
 commit_msg_container_dic_for_new_feature = {
 	"New Feature"           : "nope",
 	"Detail Descriptions"   : "nope",
-	"What"                  : "nope",
 	"Options"               : "nope",
 	"Associated Branch Path": "nope"
 }
@@ -88,7 +74,6 @@ commit_msg_container_dic_for_new_feature = {
 commit_msg_container_dic_for_feature_upgrade = {
 	"Feature Upgrade"       : "nope",
 	"Detail Descriptions"   : "nope",
-	"What"                  : "nope",
 	"Why"                   : "nope",
 	"How"                   : "nope",
 	"Options"               : "nope",
@@ -107,20 +92,15 @@ commit_msg_container_dic_for_revert = {
 commit_msg_container_dic_for_merge = {
 	"Merge"                 : "nope",
 	"Detail Descriptions"   : "nope",
-	"What"                  : "nope",
-	"Why"                   : "nope",
-	"How"                   : "nope",
 	"Options"               : "nope",
 	"Associated Branch Path": "nope",
-	"Affected Submission Id": "nope"
 }
 
+skip_commit_mark_list = [ "n", "nc", "empty" , "--- n", "---n"]
+
 cmit_msg = "\n"
-
-
-# commit_multiline_info_list = ["Detail Descriptions" , "Why", "How", "Associated Branch Path" , "What", "Options", "Affected Submission Id"]
-
-# commit_must_check_list = ["Bug Fix", "New Feature", "Feature Upgrade", "Revert", "Merge", "Detail Descriptions", "Why", "How"]
+current_commit_type = ""
+template_msg_mark = "Info:"
 
 
 def do_shell_cmd( shell_cmd ):
@@ -149,10 +129,10 @@ def store_info_to_param( msg_key, msg_value, value_store_nextline = False ):
 def is_file_exist( path_name ):
 	try:
 		if not (os.path.exists ( path_name )):
-			print ( "not exist" )
+			# print ( "not exist" )
 			return False
 		else:
-			print ( "exist" )
+			# print ( "exist" )
 			return True
 	except FileNotFoundError:
 		print ( "error: path name or format" )
@@ -168,18 +148,28 @@ def read_and_print_file( path_name ):
 
 
 def do_commit( commit_message ):
+	# print("-------------------------------------- COMMIT MSG --------------------------------------")
+	# print(commit_message)
+	# print("----------------------------------------------------------------------------------------")
 	tmp_shell_cmd = "git commit -sm \"" + commit_message + "\""
 	ret_val = do_shell_cmd ( tmp_shell_cmd )
 	if (-1 != ret_val):
-		print ( "\n------------- commit finished -----------------\n" )
+		print ( "\n--------------------- commit finished ---------------------\n" )
 		return True
 	else:
 		return False
 
 
+def force_decode_to_uft8( args ):
+	# TODO:
+	return True
+
+
 def format_commit_file( file_path ):
 	# format commit.txt file
 	# delete space
+	# encode check TODO:
+
 	tmp_shell_cmd = "sed -i 's/^[[:space:]]*//' " + commit_file_path
 	ret_val = do_shell_cmd ( tmp_shell_cmd )
 	if (-1 == ret_val):
@@ -192,10 +182,57 @@ def format_commit_file( file_path ):
 	return True
 
 
-# return a string list, start with line next is value without start_mark
-# tmp_list["start_mark_position", "after_start_mark_value"]
-# tag and information on same line
+def find_repo_path_create_commit_file_path( ):
+	global commit_file_path
+	tmp_path = cur_work_abs_path
+	"""find .repo"""
+	dir_var_list = tmp_path.split ( "/" )
+	dir_deep_index = len ( dir_var_list )
+	dir_loop_ticks = len ( dir_var_list )
+	index = 0
+	while index < int ( len ( dir_var_list ) ):
+		index += 1
+		dir_deep_index = dir_deep_index - 1
+		# print("tmp_path:" + tmp_path)
+		dir_list = os.listdir ( tmp_path )
+		for dirs in dir_list:
+			if ".repo" == dirs:
+				commit_file_path = tmp_path
+				dir_deep_index = 0
+				break
 
+		if (len ( commit_file_path.strip ( ) ) > 0):
+			print ( "find .repo in path: [" + commit_file_path + "]" )
+			commit_file_path = commit_file_path + "/" + commit_file_name
+			return True
+		else:
+			# print("dir_var_list[" + str(dir_deep_index) + "] = " + dir_var_list[dir_deep_index])
+			tmp_path = tmp_path.rstrip ( dir_var_list[ dir_deep_index ] )
+			tmp_path = tmp_path.rstrip ( "/" )
+			if (len ( tmp_path.strip ( ) ) <= 0):
+				break
+		# print("---> tmp_path: " + tmp_path)
+	return False
+
+
+# TODO: find a fast way to find .repo
+# """find git"""
+# git_tmp_file_path = cur_work_abs_path + "/git_tmp.txt"
+# tmp_shell_cmd = "git status > " + git_tmp_file_path
+# do_shell_cmd(tmp_shell_cmd)
+#
+# with open ( file_path, "rt", encoding = "UTF-8" ) as fp:
+# 	for line_index, data in enumerate ( fp, start = 1 ):
+# 		data.strip ( )
+# 		find_result = data.find ( "fatal" )
+# if find_result > 0:
+# 	print("not  in git dir")
+# else:
+# 	print("got git dir")
+
+
+# return a string list, start with line next is value without start_mark
+# tag and information on same line
 
 def got_not_must_check_info( file_path ):
 	tmp_list = [ "nope", "empty" ]
@@ -226,7 +263,7 @@ def got_not_must_check_info( file_path ):
 
 def bugfix_format_check( file_path ):
 	pos_index_list = [ ]
-
+	global current_commit_type
 	print ( "---> bugfix_format_check" )
 	ret_val = got_not_must_check_info ( file_path )
 	if False == ret_val:
@@ -245,7 +282,7 @@ def bugfix_format_check( file_path ):
 			# check which report type it is
 			# ATTENTION: force check "Bug Fix" on file first line
 			# for type_dic_value in commit_msg_container_dic_for_bug_fix.values() :
-			if (report_info_mark == commit_type_dic[ "1" ]):
+			if (report_info_mark == current_commit_type):
 				commit_msg_container_dic_for_bug_fix[ report_info_mark ] = report_info_mark_value
 				store_info_to_param ( report_info_mark, report_info_mark_value, False )
 				continue
@@ -298,19 +335,27 @@ def bugfix_format_check( file_path ):
 		if (len ( dic_value ) < MINI_INFO_LEN):
 			print ( dic_key + "value is empty " + ", value: " + dic_value )
 			return False
+		if (dic_value.find ( template_msg_mark ) > 0):
+			print ( "------------------------------------------------------------------------------" )
+			print ( "some nessage message didn't write, please re-check commit message. " + dic_value )
+			print ( "------------------------------------------------------------------------------" )
+			return False
 
 	# store msg
 	for dic_key, dic_value in commit_msg_container_dic_for_common_type.items ( ):
+		if dic_value.lower ( ) in skip_commit_mark_list:
+			print ( "skip: " + dic_key + "information" )
+			continue
 		store_info_to_param ( dic_key, dic_value, False )
 
-	need_skip_flag = False
-
 	for dic_key, dic_value in commit_msg_container_dic_for_bug_fix.items ( ):
-		if (dic_key == commit_type_dic[ "1" ]):
+		if (dic_key == current_commit_type):
 			continue
+		if (dic_key == "Associated Branch Path"):
+			if dic_value.lower ( ) in skip_commit_mark_list:
+				continue
 		else:
 			store_info_to_param ( dic_key, dic_value, True )
-
 	tmp_shell_cmd = "rm -f " + tmp_file_path
 	do_shell_cmd ( tmp_shell_cmd )
 
@@ -319,7 +364,7 @@ def bugfix_format_check( file_path ):
 
 def new_feature_format_check( file_path ):
 	pos_index_list = [ ]
-
+	global current_commit_type
 	print ( "---> new_feature_format_check" )
 	ret_val = got_not_must_check_info ( file_path )
 	if False == ret_val:
@@ -338,7 +383,7 @@ def new_feature_format_check( file_path ):
 			# check which report type it is
 			# ATTENTION: force check "Bug Fix" on file first line
 			# TODO: find way to remove commit_type_dic["X"]
-			if (report_info_mark == commit_type_dic[ "2" ]):
+			if (report_info_mark == current_commit_type):
 				commit_msg_container_dic_for_new_feature[ report_info_mark ] = report_info_mark_value
 				store_info_to_param ( report_info_mark, report_info_mark_value, False )
 				continue
@@ -389,16 +434,24 @@ def new_feature_format_check( file_path ):
 		if (len ( dic_value ) < MINI_INFO_LEN):
 			print ( dic_key + "value is empty " + ", value: " + dic_value )
 			return False
-
+		if (dic_value.find ( template_msg_mark ) > 0):
+			print ( "------------------------------------------------------------------------------" )
+			print ( "some message didn't write, please re-check commit message. " + dic_value )
+			print ( "------------------------------------------------------------------------------" )
+			return False
 	# store msg
 	for dic_key, dic_value in commit_msg_container_dic_for_common_type.items ( ):
+		if dic_value.lower ( ) in skip_commit_mark_list:
+			print ( "skip: " + dic_key + "information" )
+			continue
 		store_info_to_param ( dic_key, dic_value, False )
 
-	need_skip_flag = False
-
 	for dic_key, dic_value in commit_msg_container_dic_for_new_feature.items ( ):
-		if (dic_key == commit_type_dic[ "2" ]):
+		if (dic_key == current_commit_type):
 			continue
+		if (dic_key == "Associated Branch Path"):
+			if dic_value.lower ( ) in skip_commit_mark_list:
+				continue
 		else:
 			store_info_to_param ( dic_key, dic_value, True )
 
@@ -410,7 +463,7 @@ def new_feature_format_check( file_path ):
 
 def feature_upgrade_format_check( file_path ):
 	pos_index_list = [ ]
-
+	global current_commit_type
 	print ( "---> feature_upgrade_format_check" )
 	ret_val = got_not_must_check_info ( file_path )
 	if False == ret_val:
@@ -422,14 +475,13 @@ def feature_upgrade_format_check( file_path ):
 			data.strip ( )
 			value_start_position = data.find ( VALUE_CUT_MARK )
 			report_info_mark = data[ 0: value_start_position ]
-
 			report_info_mark_value = data[ (value_start_position + 1): ]
 			# remove left and right space
 			# check report type start, first check
 			# check which report type it is
 			# ATTENTION: force check "Bug Fix" on file first line
 			# TODO: find way to remove commit_type_dic["X"]
-			if (report_info_mark == commit_type_dic[ "3" ]):
+			if (report_info_mark == current_commit_type):
 				commit_msg_container_dic_for_feature_upgrade[ report_info_mark ] = report_info_mark_value
 				store_info_to_param ( report_info_mark, report_info_mark_value, False )
 				continue
@@ -480,16 +532,24 @@ def feature_upgrade_format_check( file_path ):
 		if (len ( dic_value ) < MINI_INFO_LEN):
 			print ( dic_key + "value is empty " + ", value: " + dic_value )
 			return False
-
+		if (dic_value.find ( template_msg_mark ) > 0):
+			print ( "------------------------------------------------------------------------------" )
+			print ( "some message didn't write, please re-check commit message. " + dic_value )
+			print ( "------------------------------------------------------------------------------" )
+			return False
 	# store msg
 	for dic_key, dic_value in commit_msg_container_dic_for_common_type.items ( ):
+		if dic_value.lower ( ) in skip_commit_mark_list:
+			print ( "skip: " + dic_key + "information" )
+			continue
 		store_info_to_param ( dic_key, dic_value, False )
 
-	need_skip_flag = False
-
 	for dic_key, dic_value in commit_msg_container_dic_for_feature_upgrade.items ( ):
-		if (dic_key == commit_type_dic[ "3" ]):
+		if (dic_key == current_commit_type):
 			continue
+		if (dic_key == "Associated Branch Path"):
+			if dic_value.lower ( ) in skip_commit_mark_list:
+				continue
 		else:
 			store_info_to_param ( dic_key, dic_value, True )
 
@@ -501,7 +561,7 @@ def feature_upgrade_format_check( file_path ):
 
 def revert_format_check( file_path ):
 	pos_index_list = [ ]
-
+	global current_commit_type
 	print ( "---> revert_format_check" )
 	ret_val = got_not_must_check_info ( file_path )
 	if False == ret_val:
@@ -520,7 +580,7 @@ def revert_format_check( file_path ):
 			# check which report type it is
 			# ATTENTION: force check "Bug Fix" on file first line
 			# TODO: find way to remove commit_type_dic["X"]
-			if (report_info_mark == commit_type_dic[ "4" ]):
+			if (report_info_mark == current_commit_type):
 				commit_msg_container_dic_for_revert[ report_info_mark ] = report_info_mark_value
 				store_info_to_param ( report_info_mark, report_info_mark_value, False )
 				continue
@@ -571,16 +631,24 @@ def revert_format_check( file_path ):
 		if (len ( dic_value ) < MINI_INFO_LEN):
 			print ( dic_key + "value is empty " + ", value: " + dic_value )
 			return False
-
+		if (dic_value.find ( template_msg_mark ) > 0):
+			print ( "------------------------------------------------------------------------------" )
+			print ( "some message didn't write, please re-check commit message. " + dic_value )
+			print ( "------------------------------------------------------------------------------" )
+			return False
 	# store msg
 	for dic_key, dic_value in commit_msg_container_dic_for_common_type.items ( ):
+		if dic_value.lower ( ) in skip_commit_mark_list:
+			print ( "skip: " + dic_key + "information" )
+			continue
 		store_info_to_param ( dic_key, dic_value, False )
 
-	need_skip_flag = False
-
 	for dic_key, dic_value in commit_msg_container_dic_for_revert.items ( ):
-		if (dic_key == commit_type_dic[ "4" ]):
+		if (dic_key == current_commit_type):
 			continue
+		if (dic_key == "Associated Branch Path"):
+			if dic_value.lower ( ) in skip_commit_mark_list:
+				continue
 		else:
 			store_info_to_param ( dic_key, dic_value, True )
 
@@ -592,7 +660,7 @@ def revert_format_check( file_path ):
 
 def merge_format_check( file_path ):
 	pos_index_list = [ ]
-
+	global current_commit_type
 	print ( "---> merge_format_check" )
 	ret_val = got_not_must_check_info ( file_path )
 	if False == ret_val:
@@ -604,14 +672,13 @@ def merge_format_check( file_path ):
 			data.strip ( )
 			value_start_position = data.find ( VALUE_CUT_MARK )
 			report_info_mark = data[ 0: value_start_position ]
-
 			report_info_mark_value = data[ (value_start_position + 1): ]
 			# remove left and right space
 			# check report type start, first check
 			# check which report type it is
 			# ATTENTION: force check "Bug Fix" on file first line
 			# TODO: find way to remove commit_type_dic["X"]
-			if (report_info_mark == commit_type_dic[ "5" ]):
+			if (report_info_mark == current_commit_type):
 				commit_msg_container_dic_for_merge[ report_info_mark ] = report_info_mark_value
 				store_info_to_param ( report_info_mark, report_info_mark_value, False )
 				continue
@@ -661,16 +728,24 @@ def merge_format_check( file_path ):
 		if (len ( dic_value ) < MINI_INFO_LEN):
 			print ( dic_key + "value is empty " + ", value: " + dic_value )
 			return False
-
+		if (dic_value.find ( template_msg_mark ) > 0):
+			print ( "------------------------------------------------------------------------------" )
+			print ( "some message didn't write, please re-check commit message. " + dic_value )
+			print ( "------------------------------------------------------------------------------" )
+			return False
 	# store msg
 	for dic_key, dic_value in commit_msg_container_dic_for_common_type.items ( ):
+		if dic_value.lower ( ) in skip_commit_mark_list:
+			print ( "skip: " + dic_key + "information" )
+			continue
 		store_info_to_param ( dic_key, dic_value, False )
 
-	need_skip_flag = False
-
 	for dic_key, dic_value in commit_msg_container_dic_for_merge.items ( ):
-		if (dic_key == commit_type_dic[ "5" ]):
+		if (dic_key == current_commit_type):
 			continue
+		if (dic_key == "Associated Branch Path"):
+			if dic_value.lower ( ) in skip_commit_mark_list:
+				continue
 		else:
 			store_info_to_param ( dic_key, dic_value, True )
 
@@ -682,7 +757,7 @@ def merge_format_check( file_path ):
 
 def format_check_commit( file_path ):
 	report_mark = ""
-
+	global current_commit_type
 	if (False == is_file_exist ( file_path )):
 		return False
 
@@ -698,29 +773,36 @@ def format_check_commit( file_path ):
 	# print("---> report_mark: " + report_mark + " position: " + str(value_start_position))
 	# check if head mark dic
 	for key, value in commit_type_dic.items ( ):
+		global current_commit_type
 		if value == report_mark:
 			# print ("---> key: " + key + ", value: " + value)
 			if "1" == key:
+
+				current_commit_type = "Bug Fix"
 				ret_val = bugfix_format_check ( file_path )
 				if (False == ret_val):
 					print ( "error: format: " + file_path )
 					return False
 			elif "2" == key:
+				current_commit_type = "New Feature"
 				ret_val = new_feature_format_check ( file_path )
 				if (False == ret_val):
 					print ( "error: format: " + file_path )
 					return False
 			elif "3" == key:
+				current_commit_type = "Feature Upgrade"
 				ret_val = feature_upgrade_format_check ( file_path )
 				if (False == ret_val):
 					print ( "error: format: " + file_path )
 					return False
 			elif "4" == key:
+				current_commit_type = "Revert"
 				ret_val = revert_format_check ( file_path )
 				if (False == ret_val):
 					print ( "error: format: " + file_path )
 					return False
 			elif "5" == key:
+				current_commit_type = "Merge"
 				ret_val = merge_format_check ( file_path )
 				if (False == ret_val):
 					print ( "error: format: " + file_path )
@@ -797,20 +879,36 @@ print ( "\t ---> " + cur_work_abs_path )
 # if (-1 != usr_val):
 #     print(usr_val)
 
-print ( "Software Version: " + VERSION )
+print ( "Software Version: " + VERSION + " Date: " + UPGRADE_DATE )
 
 loop_time = 0
 commit_template_created_flag = False
 commit_check_finished_flag = False
+ret_value = False
 
-while (False == commit_check_finished_flag) and (False == commit_template_created_flag) and (loop_time < 3):
+ret_value = find_repo_path_create_commit_file_path ( )
+if False == ret_value:
+	print ( "cannot find repo path, please check" )
+	exit ( 0 )
+
+while (False == commit_check_finished_flag) and (loop_time < 3):
 	loop_time += 1
-
-	print ( "support commit type:" )
-	for key, value in commit_type_dic.items ( ):
-		print ( key + ". " + value )
-	print ( "===================================================" )
-
+	# created commit file
+	if commit_template_created_flag:
+		retry_ticks = 0
+		while (retry_ticks < 3):
+			retry_ticks += 1
+			input_value = input (
+					"Template created. waitting for commit, input y to continue commit. input n for exit " )
+			if (input_value == 'Y') or (input_value == 'y'):
+				break
+			elif (input_value == 'N') or (input_value == 'n'):
+				print ( "exit program" )
+				exit ( 0 )
+			else:
+				print ( "input error, retry" )
+				continue
+	# has commit file when program run
 	if is_file_exist ( commit_file_path ):
 		format_commit_file ( commit_file_path )
 		print ( "\nCurrent commit msg:\n" )
@@ -835,13 +933,19 @@ while (False == commit_check_finished_flag) and (False == commit_template_create
 		elif (user_input == 'N') or (user_input == 'n'):
 			tmp_shell_cmd = "rm -vf " + commit_file_path
 			do_shell_cmd ( tmp_shell_cmd )
+			commit_template_created_flag = False
 		else:
 			continue
 	else:
 		loop_ticks = 0
 		while loop_ticks < 3:
 			loop_ticks += 1
+			print ( "support commit type:" )
+			for key, value in commit_type_dic.items ( ):
+				print ( key + ". " + value )
+			print ( "===================================================" )
 			input_value = input ( "please choose the type, integer: " )
+
 			try:
 				input_num = int ( input_value )
 				# check input integer is in range map
@@ -850,16 +954,19 @@ while (False == commit_check_finished_flag) and (False == commit_template_create
 
 				if (input_num <= len ( map_len )):
 					print ( "you have choosed: " + commit_type_dic[ input_value ] )
-					get_and_create_match_template ( commit_type_dic[ input_value ] )
+					ret_value = get_and_create_match_template ( commit_type_dic[ input_value ] )
+					if ret_value:
+						commit_template_created_flag = True
+						break
 					loop_ticks = 0
-					commit_template_created_flag = True
-					break
 				else:
 					print ( "input numberr out of range 1 ~ " + str ( len ( map_len ) ) )
 					continue
 				break
 			except:
 				print ( "input error" )
+		if commit_template_created_flag:
+			continue
 		# pass
 		if loop_ticks == 3:
 			print ( "too much input errors, exit." )
@@ -867,4 +974,4 @@ while (False == commit_check_finished_flag) and (False == commit_template_create
 
 # if __name__ == '__main__':
 
-######################################### END LINE #########################################
+# ------------------------------------------- END LINE -------------------------------------------#

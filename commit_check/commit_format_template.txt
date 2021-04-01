@@ -7,15 +7,15 @@ MTK CR: <mtk cr no.>
 UNISOC CQ: <unisoc cq no.>
 
 Detail Descriptions:
-	--- please write the descriptions of this bug in detail here
+	Info: please write the descriptions of this bug in detail here
 Why:
-	--- please write the reason why this bug occurs here
+	Info: please write the reason why this bug occurs here
 How:
-	--- please write how you solve this bug here
+	Info: please write how you solve this bug here
 Options:
-	--- please write other information here
+	Info: please write other information here
 Associated Branch Path:
-	--- please write Associated Branch Path here
+	Info: please write Associated Branch Path here
 ===============================================================
 New Feature: <brief descriptions>
 Zen Tao: <zen tao id>
@@ -23,11 +23,11 @@ MTK CR: <mtk cr no.>
 UNISOC CQ: <unisoc cq no.>
 
 Detail Descriptions:
-	--- please write the descriptions of this feature in detail here
+	Info: please write the descriptions of this feature in detail here
 Options:
-	--- please write other information here
+	Info: please write other information here
 Associated Branch Path:
-	--- please write Associated Branch Path here
+	Info: please write Associated Branch Path here
 ===============================================================
 Feature Upgrade: <brief descriptions>
 Zen Tao: <zen tao id>
@@ -35,17 +35,17 @@ MTK CR: <mtk cr no.>
 UNISOC CQ: <unisoc cq no.>
 
 Detail Descriptions:
-	--- please write the upgrade information here
+	Info: please write the upgrade information here
 Why:
-	--- please write the reason why you need upgrade here
+	Info: please write the reason why you need upgrade here
 How:
-	--- please write how here
+	Info: please write how here
 Options:
-	--- please write other information here
+	Info: please write other information here
 Associated Branch Path:
-	--- please write Associated Branch Path here
+	Info: please write Associated Branch Path here
 Affected Submission Id:
-	--- please write the Submission Id you'v commited before here
+	Info: please write the Submission Id you'v commited before here
 ===============================================================
 Revert: <brief descriptions>
 Zen Tao: <zen tao id>
@@ -53,15 +53,15 @@ MTK CR: <mtk cr no.>
 UNISOC CQ: <unisoc cq no.>
 
 Detail Descriptions:
-	--- please write the descriptions of this operation in detail here
+	Info: please write the descriptions of this operation in detail here
 Why:
-	--- please write the reason why you need revert here
+	Info: please write the reason why you need revert here
 How:
-	--- please write how you solve this problem here
+	Info: please write how you solve this problem here
 Options:
-	--- please write other information here
+	Info: please write other information here
 Associated Branch Path:
-	--- please write Associated Branch Path here
+	Info: please write Associated Branch Path here
 ===============================================================
 Merge: <brief descriptions>
 Zen Tao: <zen tao id>
@@ -69,9 +69,9 @@ MTK CR: <mtk cr no.>
 UNISOC CQ: <unisoc cq no.>
 
 Detail Descriptions:
-	--- please write the descriptions of this operation in detail here including vendor TAG
+	Info: please write the descriptions of this operation in detail here including vendor TAG
 Options:
-	--- options write information here bug
+	options write information here bug
 Associated Branch Path:
-	--- please write Associated Branch Path here
+	Info: please write Associated Branch Path here
 ===============================================================
