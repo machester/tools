@@ -14,8 +14,6 @@ How:
 	Info: please write how you solve this bug here
 Options:
 	Info: please write other information here
-Associated Branch Path:
-	Info: please write Associated Branch Path here
 ===============================================================
 New Feature: <brief descriptions>
 Zen Tao: <zen tao id>
@@ -26,8 +24,6 @@ Detail Descriptions:
 	Info: please write the descriptions of this feature in detail here
 Options:
 	Info: please write other information here
-Associated Branch Path:
-	Info: please write Associated Branch Path here
 ===============================================================
 Feature Upgrade: <brief descriptions>
 Zen Tao: <zen tao id>
@@ -42,8 +38,6 @@ How:
 	Info: please write how here
 Options:
 	Info: please write other information here
-Associated Branch Path:
-	Info: please write Associated Branch Path here
 Affected Submission Id:
 	Info: please write the Submission Id you'v commited before here
 ===============================================================
@@ -60,8 +54,6 @@ How:
 	Info: please write how you solve this problem here
 Options:
 	Info: please write other information here
-Associated Branch Path:
-	Info: please write Associated Branch Path here
 ===============================================================
 Merge: <brief descriptions>
 Zen Tao: <zen tao id>
@@ -72,6 +64,4 @@ Detail Descriptions:
 	Info: please write the descriptions of this operation in detail here including vendor TAG
 Options:
 	options write information here bug
-Associated Branch Path:
-	Info: please write Associated Branch Path here
 ===============================================================
