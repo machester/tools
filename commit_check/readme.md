@@ -1,0 +1,1 @@
+把 `format_check.py`  `hotfix` 放到 ~/config/文件夹下即可，不需要更改 代码中路径

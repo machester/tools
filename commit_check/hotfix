@@ -1,0 +1,281 @@
+#!/bin/bash
+OK='\e[0;32m'
+ERROR='\e[1;31m'
+END='\e[0m'
+ERROR()
+{
+	echo -e  "${ERROR} $1 ${END}"
+}
+
+OK()
+{
+	echo -e  "${OK} $1 ${END}"
+}
+
+MTK=false
+SPREADTRUM=false
+FOUND_FILE_CHANGE=false
+
+FORMAT_TEMPLATE_FLD=`dirname ~/config/`
+FORMAT_TEMPLATE_PATH=$FORMAT_TEMPLATE_FLD/config/commit_format_template.txt
+echo "---> FORMAT_TEMPLATE_PATH: $FORMAT_TEMPLATE_PATH"
+
+if [ ! -e .repo ];then
+	if [ ! -e ../.repo ];then
+		ERROR 'Error exec path!!! Not found ".repo" file'
+		exit 1
+	fi
+fi
+
+if [ ! -e system ];then
+	ERROR 'Error exec path!!!'
+	exit 1
+fi
+
+if [ -e ../alps ];then
+	MTK=true
+	cd ..
+	ROOT=$PWD
+	PATCH_DIR=$ROOT/PATCH
+	echo "---> MTK: PATCH_DIR: $PATCH_DIR"
+	echo "---> MTK: $ROOT"
+	cd alps/system/vold/
+else
+	echo "---> spreadtrum"
+	SPREADTRUM=true
+	ROOT=$PWD
+	cd ..
+	PATCH_DIR=$PWD/PATCH
+	cd -
+	echo "---> spreadtrum: PATCH_DIR: $PATCH_DIR"
+	cd system/vold/
+fi
+
+branch=`git branch | awk '{if(match($1,"*")){print $2}}'`
+if [ $# != 0 ];then
+	RETSUT=`git branch | grep $1`
+	if [ -z "$RETSUT" ];then
+		ERROR "No found this branch!!!"
+		exit
+	fi
+fi
+
+if [ true == "$SPREADTRUM" ];then
+	echo "------->spreadtrum Platform begin"
+	echo "------->On branch $branch"
+	`repo status >repo.txt` 
+	project=`awk  '{if(match($1,"project")){print $2}}' repo.txt`
+	if [ ! -z "$project" ];then
+		if [ ! -e $PATCH_DIR/$branch ];then
+			mkdir -p $PATCH_DIR/$branch
+		fi
+		TIME=`date +%Y%m%d%H%M`
+		DEST=Patch_"$TIME"
+		mkdir -p $PATCH_DIR/$branch/$DEST
+		mv repo.txt $PATCH_DIR/$branch/$DEST/repo_"$TIME".txt
+		if [ -e 'vendor/partner_gms/' ];then
+			PROJECT_WITHGMS=`echo -ne $project && echo " vendor/partner_gms/"`
+		elif [[ -e 'alps/vendor/partner_gms/' ]]; then
+			PROJECT_WITHGMS=`echo -ne $project && echo " alps/vendor/partner_gms/"`
+		else
+			PROJECT_WITHGMS=$project
+		fi
+		
+		for i in $PROJECT_WITHGMS
+		do
+			if [ ! -z ${i##*/}  ];then
+				i=${i%/*}/
+			fi
+			echo "PWD: $PWD"
+			echo "---> dir: $i"
+			cd $i
+			subfiles=`git status -s | awk '{print $NF}'`
+			subfiles_nountrack=`git status -s -uno | awk '{print $NF}'`
+			echo "subfiles: $subfiles"
+			echo "subfiles_nountrack: $subfiles_nountrack"
+			echo "######################in project $i #####################################\n">>$PATCH_DIR/$branch/$DEST/log_"$TIME".txt
+			git diff >>$PATCH_DIR/$branch/$DEST/log_"$TIME".txt
+			echo "\n#################################  END  ###############################\n">>$PATCH_DIR/$branch/$DEST/log_"$TIME".txt
+			for j in $subfiles
+			do
+				target=$i$j
+				dir=${target%/*}
+				if [ -e  $j ];then
+					mkdir -p $PATCH_DIR/$branch/$DEST/current/$dir
+				else
+					echo "---> before had created"
+				fi
+
+				if [ -f  $j ];then
+					cp -rfp $j $PATCH_DIR/$branch/$DEST/current/$target
+					echo "out------->$PATCH_DIR/$branch/$DEST/current/$target"
+				elif [ -d  $j ];then
+					echo "out------->$PATCH_DIR/$branch/$DEST/current/$target"
+					target=${target%/*}
+					target=${target%/*}
+					cp  -rfp $j $PATCH_DIR/$branch/$DEST/current/$target
+				else
+					if [ -e $PATCH_DIR/$branch/$DEST/current/$target ];then
+						rm $PATCH_DIR/$branch/$DEST/current/$target
+						echo "delete------->$PATCH_DIR/$branch/$DEST/current/$target"
+					fi
+				fi
+			done
+			git stash
+			for j in $subfiles_nountrack
+			do
+				target=$i$j
+				dir=${target%/*}
+				if [ -e  $j ];then
+					mkdir -p $PATCH_DIR/$branch/$DEST/before/$dir
+				fi
+
+				if [ -f  $j ];then 
+					cp -rfp $j $PATCH_DIR/$branch/$DEST/before/$target
+					echo "before------->$PATCH_DIR/$branch/$DEST/before/$target"
+				elif [ -d  $j ];then
+					echo "before------->$PATCH_DIR/$branch/$DEST/before/$target"
+					target=${target%/*}
+					target=${target%/*}
+					cp  -rfp $j $PATCH_DIR/$branch/$DEST/before/$target
+				else
+					if [ -e $PATCH_DIR/$branch/$DEST/before/$target ];then
+						rm $PATCH_DIR/$branch/$DEST/before/$target
+						echo "delete------->$PATCH_DIR/$branch/$DEST/before/$target"
+					fi
+				fi
+			done
+			git stash pop
+			cd $ROOT
+		done
+		# cp -rp PATCH ../
+		# rm -rf PATCH
+		echo "---> patch finish"
+	fi
+
+elif [ true == "$MTK" ];then
+	echo "------->MTK Platform begin"
+	echo "------->On branch $branch"
+	`repo status >repo.txt` 
+	project=`awk  '{if(match($1,"project")){print $2}}' repo.txt`
+	if [ ! -z "$project" ];then
+		if [ ! -e $PATCH_DIR/$branch ];then
+			mkdir -p $PATCH_DIR/$branch
+		fi
+		TIME=`date +%Y%m%d%H%M`
+		DEST=Patch_"$TIME"
+		mkdir -p $PATCH_DIR/$branch/$DEST
+		mv repo.txt $PATCH_DIR/$branch/$DEST/repo_"$TIME".txt
+		if [ -e 'vendor/partner_gms/' ];then
+			PROJECT_WITHGMS=`echo -ne $project && echo " vendor/partner_gms/"`
+		elif [[ -e 'alps/vendor/partner_gms/' ]]; then
+			PROJECT_WITHGMS=`echo -ne $project && echo " alps/vendor/partner_gms/"`
+		else
+			PROJECT_WITHGMS=$project
+		fi
+		# cd $ROOT
+		for i in $PROJECT_WITHGMS
+		do
+			if [ ! -z ${i##*/}  ];then
+				i=${i%/*}/
+			fi
+			echo "PWD: $PWD"
+			echo "---> dir: $i"
+			cd $i
+			subfiles=`git status -s | awk '{print $NF}'`
+			subfiles_nountrack=`git status -s -uno | awk '{print $NF}'`
+			echo "subfiles: $subfiles"
+			echo "subfiles_nountrack: $subfiles_nountrack"
+			echo "######################in project $i #####################################\n">>$PATCH_DIR/$branch/$DEST/log_"$TIME".txt
+			git diff >>$PATCH_DIR/$branch/$DEST/log_"$TIME".txt
+			echo "\n#################################  END  ###############################\n">>$PATCH_DIR/$branch/$DEST/log_"$TIME".txt
+			for j in $subfiles
+			do
+				target=$i$j
+				target=${target#*/}
+				dir=${target%/*}
+				if [ -e  $j ];then
+					mkdir -p $PATCH_DIR/$branch/$DEST/current/$dir
+				fi
+
+				if [ -f  $j ];then
+					cp -rfp $j $PATCH_DIR/$branch/$DEST/current/$target
+					echo "out--->$PATCH_DIR/$branch/$DEST/current/$target"
+				elif [ -d  $j ];then
+					echo "out--->$PATCH_DIR/$branch/$DEST/current/$target"
+					target=${target%/*}
+					target=${target%/*}
+					cp  -rfp $j $PATCH_DIR/$branch/$DEST/current/$target
+				else
+					if [ -e $PATCH_DIR/$branch/$DEST/current/$target ];then
+						rm $PATCH_DIR/$branch/$DEST/current/$target
+						echo "delete--->$PATCH_DIR/$branch/$DEST/current/$target"
+					fi
+				fi
+			done
+			git stash
+			for j in $subfiles_nountrack
+			do
+				target=$i$j
+				target=${target#*/}
+				dir=${target%/*}
+				if [ -e  $j ];then
+					mkdir -p $PATCH_DIR/$branch/$DEST/before/$dir
+				else
+					echo "---> before had created"
+				fi
+
+				if [ -f  $j ];then 
+					cp -rfp $j $PATCH_DIR/$branch/$DEST/before/$target
+					echo "before------->$PATCH_DIR/$branch/$DEST/before/$target"
+				elif [ -d  $j ];then
+					echo "before------->$PATCH_DIR/$branch/$DEST/before/$target"
+					target=${target%/*}
+					target=${target%/*}
+					cp  -rfp $j $PATCH_DIR/$branch/$DEST/before/$target
+				else
+					if [ -e $PATCH_DIR/$branch/$DEST/before/$target ];then
+						rm $PATCH_DIR/$branch/$DEST/before/$target
+						echo "delete------->$PATCH_DIR/$branch/$DEST/before/$target"
+					fi
+				fi
+			done
+			git stash pop
+			cd $ROOT
+		done
+	fi
+	echo "---> patch finish"
+
+else
+	echo "nothing to commit (working directory clean)"
+fi
+
+read -r  -p "auto commit?(y/n) : " input
+if [ "$input" = "y" ];then
+	echo "---> ready to check format"
+	# write format_check.py path
+	python3 ~/config/format_check.py check $FORMAT_TEMPLATE_PATH
+	if [ 0 -eq $? ]; then
+		for i in $project
+		do
+			if [ ! -z ${i##*/}  ];then
+				i=${i%/*}/
+			fi
+			cd $i
+			echo "Project $i"
+			git add --all
+			# write format_check.py path
+			# echo "path dir: $FORMAT_TEMPLATE_PATH $PATCH_DIR/$branch/$DEST"
+			python3 ~/config/format_check.py commit $FORMAT_TEMPLATE_PATH $PATCH_DIR/$branch/$DEST/repo_"$TIME".txt
+			if [ 0 -ne $? ]; then
+				exit 1
+			fi
+			cd $ROOT
+		done
+	else
+		echo "---> format check failed"
+		exit 1
+	fi
+else
+	exit 1
+fi
