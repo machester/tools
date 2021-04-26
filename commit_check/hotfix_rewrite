@@ -1,7 +1,9 @@
 #!/bin/bash
 
-DEBUG_FLAG=true
+BASH_VSERISON=1.0
+echo "Bash Version: $BASH_VSERISON"
 
+DEBUG_FLAG=false
 MTK=false
 SPREADTRUM=false
 FOUND_FILE_CHANGE=false
@@ -9,7 +11,7 @@ FOUND_FILE_CHANGE=false
 CUR_DIR=$PWD
 FORMAT_TEMPLATE_FLD=$(dirname ~/config/)
 FORMAT_TEMPLATE_PATH=$FORMAT_TEMPLATE_FLD/config/commit_format_template.txt
-FORMAT_CHECK_PY_FLILE=$FORMAT_TEMPLATE_FLD/config//format_check.py
+FORMAT_CHECK_PY_FLILE=$FORMAT_TEMPLATE_FLD/config/format_check.py
 echo "FORMAT_CHECK_PY_FLILE: $FORMAT_CHECK_PY_FLILE"
 
 REPO_INFO_LOG=repo_infolog.log
@@ -58,14 +60,14 @@ function check_type_set_path_dir()
 {
 	if [  -d ".repo" ]; then
 		if [ ! -d "alps" ]; then
-			debug_msg "---> spreadtrum"
+			debug_msg "---> SPREADTRUM"
 			SPREADTRUM=true
 			CODE_HOME_DIR=$PWD
 			cd ..
 			PATCH_DIR=$PWD/PATCH
 			cd -
-			debug_msg "---> spreadtrum: CODE_HOME_DIR: $CODE_HOME_DIR"
-			debug_msg "---> spreadtrum: PATCH_DIR: $PATCH_DIR"
+			debug_msg "---> SPREADTRUM: CODE_HOME_DIR: $CODE_HOME_DIR"
+			debug_msg "---> SPREADTRUM: PATCH_DIR: $PATCH_DIR"
 		else
 			error_echo "current dir, alps found"
 		fi
@@ -109,7 +111,6 @@ function get_current_repo_branch_name()
 function sprd_generate_patch()
 {
 	debug_msg "Get PATCH on Branch: $BRANCH_NAME"
-	$(repo status > repo.txt)
 	echo "repo status run"
 	repo status > $PATCH_TARGET_DIR/$REPO_INFO_LOG
 
@@ -158,9 +159,7 @@ function sprd_generate_patch()
 
 function mtk_generate_patch()
 {
-
 	debug_msg "Get PATCH on Branch: $BRANCH_NAME"
-	$(repo status > repo.txt)
 	echo "repo status run"
 	repo status > $PATCH_TARGET_DIR/$REPO_INFO_LOG
 
