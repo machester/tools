@@ -84,8 +84,8 @@ commit_msg_container_dic_for_feature_upgrade = {
     "Why"                   : "nope",
     "How"                   : "nope",
     "Options"               : "nope",
-    "Associated Branch Path": "nope",
-    "Affected Submission Id": "nope"
+    "Affected Submission Id": "nope",
+    "Associated Branch Path": "nope"
 }
 
 commit_msg_container_dic_for_revert = {
@@ -921,7 +921,7 @@ switch_mark_check = "check"
 switch_mark_commit = "commit"
 
 if(len(sys.argv) <= 2):
-    print("error: Miss transfered")
+    print("error: Miss transfered parameter")
     exit(-1)
 
 template_file_path = str(sys.argv[2])

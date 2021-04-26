@@ -1,8 +1,6 @@
 #!/bin/bash
 
-OK=''
-ERROR=''
-END=''
+DEBUG_FLAG=true
 
 MTK=false
 SPREADTRUM=false
@@ -11,11 +9,12 @@ FOUND_FILE_CHANGE=false
 CUR_DIR=$PWD
 FORMAT_TEMPLATE_FLD=$(dirname ~/config/)
 FORMAT_TEMPLATE_PATH=$FORMAT_TEMPLATE_FLD/config/commit_format_template.txt
+FORMAT_CHECK_PY_FLILE=$FORMAT_TEMPLATE_FLD/config//format_check.py
+echo "FORMAT_CHECK_PY_FLILE: $FORMAT_CHECK_PY_FLILE"
 
-REPO_INFO_TEMP_NAME=repo_temp.txt
-LOG_INFO_TEMP_NAME=log_temp.txt
-
-
+REPO_INFO_LOG=repo_infolog.log
+REPO_BRANCH_LOG=repo_branch.log
+LOG_INFO=log.log
 
 
 function help()
@@ -30,7 +29,7 @@ function help()
 
 function error_echo()
 {
-	if [ $# -ne 2 ];then
+	if [ $# -ne 1 ];then
 		echo "not param transfred in error_echo"
 	else
 		echo -e "\e[1;31m ERROR: $1 \e[0m"
@@ -39,7 +38,7 @@ function error_echo()
 
 function pass_echo()
 {
-	if [ $# -ne 2 ];then
+	if [ $# -ne 1 ];then
 		echo "not param transfred in pass_echo"
 	else
 		echo -e "\e[0;32m PASS: $1 \e[0m"
@@ -48,299 +47,231 @@ function pass_echo()
 
 function debug_msg()
 {
-	if [ $# -eq 2 ];then
-		echo -ne "DEBUG: $1 \n"
-	fi
-}
-
-
-function its_in_repo_project()
-{
-	if [ ! -e .repo ]; then
-		if [ ! -e ../.repo ]; then
-			error_echo "Dir, repo can not found"
-			exit 1
+	if [ true == "$DEBUG_FLAG" ]; then
+		if [ $# -eq 1 ];then
+			echo -ne "DEBUG: $1 \n"
 		fi
 	fi
 }
 
 function check_type_set_path_dir()
 {
-	if [ -e ../alps ]; then
-		MTK=true
-		# cd ..
-		# root dir is alps/root_ dir
-		ROOT=$PWD
-		cd ..
-		# patch_dir is alps patch_dir
-		PATCH_DIR=$PWD/PATCH
-		echo "---> MTK: PATCH_DIR: $PATCH_DIR"
-		echo "---> MTK: $ROOT"
+	if [  -d ".repo" ]; then
+		if [ ! -d "alps" ]; then
+			debug_msg "---> spreadtrum"
+			SPREADTRUM=true
+			CODE_HOME_DIR=$PWD
+			cd ..
+			PATCH_DIR=$PWD/PATCH
+			cd -
+			debug_msg "---> spreadtrum: CODE_HOME_DIR: $CODE_HOME_DIR"
+			debug_msg "---> spreadtrum: PATCH_DIR: $PATCH_DIR"
+		else
+			error_echo "current dir, alps found"
+		fi
+	elif [  -d "../.repo" ]; then
+		if [  -d "../alps" ]; then
+			MTK=true
+			CODE_HOME_DIR=$PWD
+			cd ..
+			MTK_ALPS_DIR=$PWD
+			# patch_dir is alps patch_dir
+			PATCH_DIR=$MTK_ALPS_DIR/PATCH
+			debug_msg "---> MTK MTK_ALPS_DIR: $MTK_ALPS_DIR"
+			debug_msg "---> MTK PATCH_DIR: $PATCH_DIR"
+			debug_msg "---> MTK CODE_HOME_DIR: $CODE_HOME_DIR"
+			cd $MTK_ALPS_DIR
+		else
+			error_echo "Dir, alps can not found"
+			exit 1
+		fi
 	else
-		echo "\n---> spreadtrum"
-		SPREADTRUM=true
-		ROOT=$PWD
-		cd ..
-		PATCH_DIR=$PWD/PATCH
-		cd -
-		echo "---> spreadtrum: PATCH_DIR: $PATCH_DIR"
+		error_echo "Dir, repo can not found"
+		exit 1
 	fi
 }
 
 function get_current_repo_branch_name()
 {
-	branch=$(git branch | awk '{if(match($1,"*")){print $2}}')
-	if [ $# != 0 ]; then
-		RETSUT=$(git branch | grep $1)
-		if [ -z "$RETSUT" ]; then
-			error_echo "No found this branch!!!"
-			exit
-		fi
+	# choose dir kernel to find branch name
+	cd  $CODE_HOME_DIR/kernel/build
+	BRANCH_NAME=`git symbolic-ref --short -q HEAD`
+	if [ ! != "$BRANCH_NAME" ];then
+		debug_msg "Current Branch: $BRANCH_NAME"
+	else
+		error_echo "No found this branch!!!"
+		exit 1
 	fi
+	cd $CODE_HOME_DIR
 }
 
 
 function sprd_generate_patch()
 {
-	echo "------->On branch $branch"
-	$(repo status >repo.txt)
-	project=$(awk '{if(match($1,"project")){print $2}}' repo.txt)
-	echo "---> project: $project"
-	if [ ! -z "$project" ]; then
-		if [ ! -e $PATCH_DIR/$branch ]; then
-			mkdir -p $PATCH_DIR/$branch
-		fi
-		TIME=$(date +%Y%m%d%H%M)
-		DEST=Patch_"$TIME"
-		mkdir -p $PATCH_DIR/$branch/$DEST
-		mv repo.txt $PATCH_DIR/$branch/$DEST/repo_"$TIME".txt
-		# if [ -e 'vendor/partner_gms/' ];then
-		# 	PROJECT_WITHGMS=`echo -ne $project && echo " vendor/partner_gms/"`
-		# elif [[ -e 'alps/vendor/partner_gms/' ]]; then
-		# 	PROJECT_WITHGMS=`echo -ne $project && echo " alps/vendor/partner_gms/"`
-		# else
-		# PROJECT_WITHGMS=$project
-		# fi
-		echo "---> ROOT: $ROOT"
-		# cd $ROOT
-		for i in $project; do
-			if [ ! -z ${i##*/} ]; then
-				i=${i%/*}/
-			fi
-			echo "---> PWD: $PWD"
-			echo "---> dir: $i"
-			cd $i
-			subfiles=$(git status -s | awk '{print $NF}')
-			subfiles_nountrack=$(git status -s -uno | awk '{print $NF}')
-			echo "subfiles: $subfiles"
-			echo "subfiles_nountrack: $subfiles_nountrack"
-			echo "######################in project $i #####################################\n" >>$PATCH_DIR/$branch/$DEST/log_"$TIME".txt
-			git diff >>$PATCH_DIR/$branch/$DEST/log_"$TIME".txt
-			echo "\n#################################  END  ###############################\n" >>$PATCH_DIR/$branch/$DEST/log_"$TIME".txt
-			for j in $subfiles; do
-				target=$i$j
-				dir=${target%/*}
-				if [ -e $j ]; then
-					mkdir -p $PATCH_DIR/$branch/$DEST/current/$dir
-				else
-					echo "---> before had created"
-				fi
+	debug_msg "Get PATCH on Branch: $BRANCH_NAME"
+	$(repo status > repo.txt)
+	echo "repo status run"
+	repo status > $PATCH_TARGET_DIR/$REPO_INFO_LOG
 
-				if [ -f $j ]; then
-					cp -rfp $j $PATCH_DIR/$branch/$DEST/current/$target
-					echo "Current: $PATCH_DIR/$branch/$DEST/current/$target"
-				elif [ -d $j ]; then
-					echo "Current: $PATCH_DIR/$branch/$DEST/current/$target"
-					target=${target%/*}
-					target=${target%/*}
-					cp -rfp $j $PATCH_DIR/$branch/$DEST/current/$target
-				else
-					if [ -e $PATCH_DIR/$branch/$DEST/current/$target ]; then
-						rm $PATCH_DIR/$branch/$DEST/current/$target
-						echo "delete------->$PATCH_DIR/$branch/$DEST/current/$target"
-					fi
-				fi
-			done
-			echo "---> git stash"
-			git stash
-			echo "PATCH_DIR: $PATCH_DIR/$branch/$DEST"
-			for j in $subfiles_nountrack; do
-				target=$i$j
-				dir=${target%/*}
-				echo "target: $target"
-				echo "dir: $dir"
-				echo "JJJJ: $j"
+	PROJECT_NAME=$(awk '{if(match($1,"project")){print $2}}' $PATCH_TARGET_DIR/$REPO_INFO_LOG)
+	echo $PROJECT_NAME > $PATCH_TARGET_DIR/$REPO_BRANCH_LOG
+	debug_msg "PROJECT_NAME: $PROJECT_NAME"
+	debug_msg "CODE_HOME_DIR: $CODE_HOME_DIR"
 
-				if [ -e $j ]; then
-					mkdir -p $PATCH_DIR/$branch/$DEST/before/$dir
-				else
-					echo "---> before had created"
-				fi
+	CHANGED_BRANCH_NUMBER=`awk -F " " '{print NF}' $PATCH_TARGET_DIR/$REPO_BRANCH_LOG`
+	debug_msg "CHANGED_BRANCH_NUMBER: $CHANGED_BRANCH_NUMBER"
+	branch_index=1
+	TEMP_LOG_FILE=$LOG_FLD/temp_log.log
+	while [ $branch_index -le $CHANGED_BRANCH_NUMBER ]
+	do
+		# debug_msg "branch_index: $branch_index"
+		CURRENT_BRANCH_DIR=`awk -v loop_index=$branch_index -F " " '{print $loop_index}' $PATCH_TARGET_DIR/$REPO_BRANCH_LOG`
+		# debug_msg "CURRENT_BRANCH_DIR: $CURRENT_BRANCH_DIR"
+		mkdir -p $PATCH_TARGET_DIR/current/$CURRENT_BRANCH_DIR
+		mkdir -p $PATCH_TARGET_DIR/before/$CURRENT_BRANCH_DIR
+		cd $CURRENT_BRANCH_DIR
+		# debug_msg "O PWD: $PWD"
 
-				if [ -f $j ]; then
-					cp -rfp $j $PATCH_DIR/$branch/$DEST/before/$target
-					echo "Before: $PATCH_DIR/$branch/$DEST/before/$target"
-				elif [ -d $j ]; then
-					echo "Before: $PATCH_DIR/$branch/$DEST/before/$target"
-					target=${target%/*}
-					target=${target%/*}
-					cp -rfp $j $PATCH_DIR/$branch/$DEST/before/$target
-				else
-					if [ -e $PATCH_DIR/$branch/$DEST/before/$target ]; then
-						rm $PATCH_DIR/$branch/$DEST/before/$target
-						echo "delete------->$PATCH_DIR/$branch/$DEST/before/$target"
-					fi
-				fi
-			done
-			echo "---> git stash"
-			git stash pop
-			cd $ROOT
+		all_change_list=$(git status -s | awk '{print $NF}')
+		change_ignore_new_add=$(git status -s -uno | awk '{print $NF}')
+		
+		for modified_file in $all_change_list
+		do
+			cp -rf --parents $modified_file $PATCH_TARGET_DIR/current/$CURRENT_BRANCH_DIR
+			FOUND_FILE_CHANGE=true
 		done
-		# cp -rp PATCH ../
-		# rm -rf PATCH
-		echo "---> patch finish"
-	fi
-}
-
-
-function sprd_mtk_patch()
-{
-	echo "------->On branch $branch"
-
-	$(repo status >repo.txt)
-	project=$(awk '{if(match($1,"project")){print $2}}' repo.txt)
-	if [ ! -z "$project" ]; then
-		if [ ! -e $PATCH_DIR/$branch ]; then
-			mkdir -p $PATCH_DIR/$branch
-		fi
-		TIME=$(date +%Y%m%d%H%M)
-		DEST=Patch_"$TIME"
-		mkdir -p $PATCH_DIR/$branch/$DEST
-		mv repo.txt $PATCH_DIR/$branch/$DEST/repo_"$TIME".txt
-		if [ -e 'vendor/partner_gms/' ]; then
-			PROJECT_WITHGMS=$(echo -ne $project && echo " vendor/partner_gms/")
-		elif [[ -e 'alps/vendor/partner_gms/' ]]; then
-			PROJECT_WITHGMS=$(echo -ne $project && echo " alps/vendor/partner_gms/")
-		else
-			PROJECT_WITHGMS=$project
-		fi
-		# cd $ROOT
-		for i in $PROJECT_WITHGMS; do
-			if [ ! -z ${i##*/} ]; then
-				i=${i%/*}/
-			fi
-			echo "PWD: $PWD"
-			echo "---> dir: $i"
-			cd $i
-			subfiles=$(git status -s | awk '{print $NF}')
-			subfiles_nountrack=$(git status -s -uno | awk '{print $NF}')
-			echo "subfiles: $subfiles"
-			echo "subfiles_nountrack: $subfiles_nountrack"
-			echo "######################in project $i #####################################\n" >>$PATCH_DIR/$branch/$DEST/log_"$TIME".txt
-			git diff >>$PATCH_DIR/$branch/$DEST/log_"$TIME".txt
-			echo "\n#################################  END  ###############################\n" >>$PATCH_DIR/$branch/$DEST/log_"$TIME".txt
-			for j in $subfiles; do
-				target=$i$j
-				target=${target#*/}
-				dir=${target%/*}
-				if [ -e $j ]; then
-					mkdir -p $PATCH_DIR/$branch/$DEST/current/$dir
-				fi
-
-				if [ -f $j ]; then
-					cp -rfp $j $PATCH_DIR/$branch/$DEST/current/$target
-					echo "Current: $PATCH_DIR/$branch/$DEST/current/$target"
-				elif [ -d $j ]; then
-					echo "Current: $PATCH_DIR/$branch/$DEST/current/$target"
-					target=${target%/*}
-					target=${target%/*}
-					cp -rfp $j $PATCH_DIR/$branch/$DEST/current/$target
-				else
-					if [ -e $PATCH_DIR/$branch/$DEST/current/$target ]; then
-						rm $PATCH_DIR/$branch/$DEST/current/$target
-						echo "Del: $PATCH_DIR/$branch/$DEST/current/$target"
-					fi
-				fi
-			done
-			git stash
-			for j in $subfiles_nountrack; do
-				target=$i$j
-				target=${target#*/}
-				dir=${target%/*}
-				if [ -e $j ]; then
-					mkdir -p $PATCH_DIR/$branch/$DEST/before/$dir
-				else
-					echo "---> before had created"
-				fi
-
-				if [ -f $j ]; then
-					cp -rfp $j $PATCH_DIR/$branch/$DEST/before/$target
-					echo "Before: $PATCH_DIR/$branch/$DEST/before/$target"
-				elif [ -d $j ]; then
-					echo "Before: $PATCH_DIR/$branch/$DEST/before/$target"
-					target=${target%/*}
-					target=${target%/*}
-					cp -rfp $j $PATCH_DIR/$branch/$DEST/before/$target
-				else
-					if [ -e $PATCH_DIR/$branch/$DEST/before/$target ]; then
-						rm $PATCH_DIR/$branch/$DEST/before/$target
-						echo "Del: $PATCH_DIR/$branch/$DEST/before/$target"
-					fi
-				fi
-			done
-			git stash pop
-			cd $ROOT
+		debug_msg "---> run git stash"
+		git stash
+		for modified_file in $change_ignore_new_add
+		do
+			cp -rf --parents $modified_file $PATCH_TARGET_DIR/before/$CURRENT_BRANCH_DIR
 		done
-	fi
+		debug_msg "---> git stash pop"
+		git stash pop
+		cd $CODE_HOME_DIR
+
+		let branch_index++
+	done
 	echo "---> patch finish"
 }
 
 
+function mtk_generate_patch()
+{
+
+	debug_msg "Get PATCH on Branch: $BRANCH_NAME"
+	$(repo status > repo.txt)
+	echo "repo status run"
+	repo status > $PATCH_TARGET_DIR/$REPO_INFO_LOG
+
+	PROJECT_NAME=$(awk '{if(match($1,"project")){print $2}}' $PATCH_TARGET_DIR/$REPO_INFO_LOG)
+	echo $PROJECT_NAME > $PATCH_TARGET_DIR/$REPO_BRANCH_LOG
+	debug_msg "PROJECT_NAME: $PROJECT_NAME"
+	debug_msg "CODE_HOME_DIR: $CODE_HOME_DIR"
+
+	CHANGED_BRANCH_NUMBER=`awk -F " " '{print NF}' $PATCH_TARGET_DIR/$REPO_BRANCH_LOG`
+	debug_msg "CHANGED_BRANCH_NUMBER: $CHANGED_BRANCH_NUMBER"
+	branch_index=1
+	TEMP_LOG_FILE=$LOG_FLD/temp_log.log
+	while [ $branch_index -le $CHANGED_BRANCH_NUMBER ]
+	do
+		# debug_msg "branch_index: $branch_index"
+		CURRENT_BRANCH_DIR=`awk -v loop_index=$branch_index -F " " '{print $loop_index}' $PATCH_TARGET_DIR/$REPO_BRANCH_LOG`
+		# debug_msg "CURRENT_BRANCH_DIR: $CURRENT_BRANCH_DIR"
+		mkdir -p $PATCH_TARGET_DIR/current/$CURRENT_BRANCH_DIR
+		mkdir -p $PATCH_TARGET_DIR/before/$CURRENT_BRANCH_DIR
+		cd $CURRENT_BRANCH_DIR
+		# debug_msg "O PWD: $PWD"
+
+		all_change_list=$(git status -s | awk '{print $NF}')
+		change_ignore_new_add=$(git status -s -uno | awk '{print $NF}')
+		
+		for modified_file in $all_change_list
+		do
+			cp -rf --parents $modified_file $PATCH_TARGET_DIR/current/$CURRENT_BRANCH_DIR
+			FOUND_FILE_CHANGE=true
+		done
+		debug_msg "---> run git stash"
+		git stash
+		for modified_file in $change_ignore_new_add
+		do
+			cp -rf --parents $modified_file $PATCH_TARGET_DIR/before/$CURRENT_BRANCH_DIR
+		done
+		debug_msg "---> git stash pop"
+		git stash pop
+		cd $MTK_ALPS_DIR
+
+		let branch_index++
+	done
+	echo "---> patch finish"
+}
+
 debug_msg $FORMAT_TEMPLATE_PATH
-# find repo
-its_in_repo_project
+debug_msg "CUR_DIR: $CUR_DIR"
+# find repo set home dir
+check_type_set_path_dir
+get_current_repo_branch_name
+TIME=$(date +%Y%m%d%H%M)
+PATCH_NAME=Patch_"$TIME"
+PATCH_TARGET_DIR=$PATCH_DIR/$BRANCH_NAME/$PATCH_NAME
+if [ ! -d "$PATCH_TARGET_DIR" ]; then
+	mkdir -p $PATCH_TARGET_DIR
+else
+	debug_msg "exsit: $PATCH_TARGET_DIR"
+	rm -rvf $PATCH_TARGET_DIR
+	mkdir -p $PATCH_TARGET_DIR
+fi
+
+touch $PATCH_TARGET_DIR/$REPO_INFO_LOG
+touch $PATCH_TARGET_DIR/$REPO_BRANCH_LOG
+touch $PATCH_TARGET_DIR/$LOG_INFO
 
 
-
-
-cd $ROOT
 if [ true == "$SPREADTRUM" ]; then
-	echo "------->spreadtrum Platform begin"
-
-
+	cd $CODE_HOME_DIR
+	debug_msg "---> moved in: CODE_HOME_DIR: $CODE_HOME_DIR"
+	echo "Spreadtrum Platform begin"
+	sprd_generate_patch
 elif [ true == "$MTK" ]; then
-	echo "------->MTK Platform begin"
+	echo "MTK Platform begin"
+	cd $MTK_ALPS_DIR
+	debug_msg "---> moved in: MTK_ALPS_DIR: $MTK_ALPS_DIR"
+	mtk_generate_patch
+else
+	error_echo "cannot found correct platform"
+fi
 
+if [ true == "$FOUND_FILE_CHANGE" ]; then
+	echo -ne "auto commit(y/n)? : "
+	read input
+	if [ "$input" = "y" ]; then
+		echo "---> ready to check format"
+		# write format_check.py path
+		python3 $FORMAT_CHECK_PY_FLILE check $FORMAT_TEMPLATE_PATH
 
+		branch_index=1
+		while [ $branch_index -le $CHANGED_BRANCH_NUMBER ]
+		do
+			# debug_msg "branch_index: $branch_index"
+			CURRENT_BRANCH_DIR=`awk -v loop_index=$branch_index -F " " '{print $loop_index}' $PATCH_TARGET_DIR/$REPO_BRANCH_LOG`
+			cd $CURRENT_BRANCH_DIR
+			echo "In branch: $PWD"
+			git add --all
+			python3 $FORMAT_CHECK_PY_FLILE commit $FORMAT_TEMPLATE_PATH $PATCH_TARGET_DIR/$REPO_INFO_LOG
+			if [ true == "$SPREADTRUM" ]; then
+				cd $CODE_HOME_DIR
+			elif [ true == "$MTK" ]; then
+				cd $MTK_ALPS_DIR
+			fi
+			let branch_index++
+		done
+	else
+		exit 0
+	fi
 else
 	echo "nothing to commit (working directory clean)"
 fi
 
-read -r -p "auto commit(y/n)? : " input
-if [ "$input" = "y" ]; then
-	echo "---> ready to check format"
-	# write format_check.py path
-	python3 ~/work/jiangq/stack/format_check.py check $FORMAT_TEMPLATE_PATH
-	if [ 0 -eq $? ]; then
-		for i in $project; do
-			if [ ! -z ${i##*/} ]; then
-				i=${i%/*}/
-			fi
-			cd $i
-			echo "Project $i"
-			git add --all
-			# write format_check.py path
-			# echo "path dir: $FORMAT_TEMPLATE_PATH $PATCH_DIR/$branch/$DEST"
-			python3 ~/work/jiangq/stack/format_check.py commit $FORMAT_TEMPLATE_PATH $PATCH_DIR/$branch/$DEST/repo_"$TIME".txt
-			if [ 0 -ne $? ]; then
-				exit 1
-			fi
-			cd $ROOT
-		done
-	else
-		echo "---> format check failed"
-		exit 1
-	fi
-else
-	exit 1
-fi
+rm -f $PATCH_TARGET_DIR/$REPO_INFO_LOG
+rm -f $PATCH_TARGET_DIR/$REPO_BRANCH_LOG
+rm -f $PATCH_TARGET_DIR/$LOG_INFO
