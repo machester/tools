@@ -13,8 +13,8 @@ import linecache
 # import chardet
 
 
-VERSION = "1.4"
-UPGRADE_DATE = "2021-04-23"
+VERSION = "1.5"
+UPGRADE_DATE = "2021-04-28"
 
 REPO_INFO_PATH = ""
 REPO_PROJECT_MARK = "project"
@@ -47,6 +47,8 @@ commit_type_dic = { "1": "Bug Fix",
                     "5": "Merge"
                     }
 
+sort_index_commit_type = ["1", "2", "3", "4", "5"]
+
 help_info_container_dic = {
     "help" : "\
 -------------------------------------------- HELP ----------------------------------------------\n\
@@ -70,6 +72,7 @@ commit_msg_container_dic_for_bug_fix = {
     "Options"               : "nope",
     "Associated Branch Path": "nope"
 }
+sort_index_bugfix = ["Bug Fix", "Zen Tao", "MTK CR", "UNISOC CQ", "Detail Descriptions", "Why", "How", "Options", "Associated Branch Path"]
 
 commit_msg_container_dic_for_new_feature = {
     "New Feature"           : "nope",
@@ -77,6 +80,7 @@ commit_msg_container_dic_for_new_feature = {
     "Options"               : "nope",
     "Associated Branch Path": "nope"
 }
+sort_index_new_feature = ["New Feature", "Zen Tao", "MTK CR", "UNISOC CQ", "Detail Descriptions", "Options", "Associated Branch Path"]
 
 commit_msg_container_dic_for_feature_upgrade = {
     "Feature Upgrade"       : "nope",
@@ -87,6 +91,7 @@ commit_msg_container_dic_for_feature_upgrade = {
     "Affected Submission Id": "nope",
     "Associated Branch Path": "nope"
 }
+sort_index_feature_upgrade = ["Feature Upgrade", "Zen Tao", "MTK CR", "UNISOC CQ", "Detail Descriptions", "Why", "How", "Options", "Affected Submission Id", "Associated Branch Path"]
 
 commit_msg_container_dic_for_revert = {
     "Revert"                : "nope",
@@ -95,6 +100,7 @@ commit_msg_container_dic_for_revert = {
     "How"                   : "nope",
     "Associated Branch Path": "nope"
 }
+sort_index_revert = ["revert", "Zen Tao", "MTK CR", "UNISOC CQ", "Detail Descriptions", "Why", "How", "Associated Branch Path"]
 
 commit_msg_container_dic_for_merge = {
     "Merge"                 : "nope",
@@ -102,12 +108,23 @@ commit_msg_container_dic_for_merge = {
     "Options"               : "nope",
     "Associated Branch Path": "nope"
 }
+sort_index_merge = ["Merge", "Zen Tao", "MTK CR", "UNISOC CQ", "Detail Descriptions", "Options", "Associated Branch Path"]
 
-skip_commit_mark_list = ["n", "no", "empty", "---"]
+skip_commit_mark_list = ["n", "no", "empty", "---", "nope"]
 
 cmit_msg = "\n"
 current_commit_type = ""
 template_msg_mark = "Info:"
+
+def go_out():
+    global temp_commit_file_path
+
+    tmp_shell_cmd = "rm -f " + temp_commit_file_path
+    ret_val = do_shell_cmd(tmp_shell_cmd)
+
+
+
+    exit(-1)
 
 def do_shell_cmd(shell_cmd):
     try:
@@ -124,6 +141,8 @@ def do_shell_cmd(shell_cmd):
 
 def store_info_to_param(msg_key, msg_value, value_store_nextline = False):
     global cmit_msg
+    if "Detail Descriptions" == msg_key:
+        cmit_msg += "\n"
     cmit_msg += msg_key + ": "
     if value_store_nextline:
         cmit_msg += "\n\t"
@@ -153,7 +172,7 @@ def do_commit(commit_message):
     tmp_shell_cmd = "git commit -sm \"" + commit_message + "\""
     ret_val = do_shell_cmd(tmp_shell_cmd)
     if (-1 != ret_val):
-        print("\n----------- current branch commit finished -----------\n")
+        print("----------- current branch commit finished -----------\n")
 
         return True
     else:
@@ -275,11 +294,7 @@ def bugfix_format_check(file_path):
             report_info_mark = data[0: value_start_position]
 
             report_info_mark_value = data[(value_start_position + 1):]
-            # remove left and right space
-            # check report type start, first check
-            # check which report type it is
-            # ATTENTION: force check "Bug Fix" on file first line
-            # for type_dic_value in commit_msg_container_dic_for_bug_fix.values() :
+
             if (report_info_mark == current_commit_type):
                 commit_msg_container_dic_for_bug_fix[report_info_mark] = report_info_mark_value
                 store_info_to_param(report_info_mark, report_info_mark_value, False)
@@ -341,27 +356,29 @@ def bugfix_format_check(file_path):
             return False
 
     # store msg
-    for dic_key, dic_value in commit_msg_container_dic_for_common_type.items():
-        if dic_value.lower() in skip_commit_mark_list:
-            # print("skip: " + dic_key + "information")
-            continue
-        store_info_to_param(dic_key, dic_value, False)
-
-    for dic_key, dic_value in commit_msg_container_dic_for_bug_fix.items():
-        # print(dic_key + " : " + dic_value)
-        if (dic_key == current_commit_type):
-            continue
-        if (dic_key == "Associated Branch Path"):
-            repo_branch_list = find_associated_branch_path(REPO_INFO_PATH)
-            if (0 == len(repo_branch_list)):
-                print("error: cannot find repo branch info")
-                exit(-1)
+    for loop_index in range(len(sort_index_bugfix)):
+        # print("index: " + str(loop_index) + "value: " + sort_index_bugfix[loop_index])
+        if sort_index_bugfix[loop_index] in commit_msg_container_dic_for_common_type:
+            if commit_msg_container_dic_for_common_type.get(sort_index_bugfix[loop_index]).lower() not in skip_commit_mark_list:
+                store_info_to_param(sort_index_bugfix[loop_index], commit_msg_container_dic_for_common_type.get(sort_index_bugfix[loop_index]), False)
             else:
-                tmp_branch_info = "\n\t".join(repo_branch_list)
-                store_info_to_param(dic_key, tmp_branch_info, True)
-            continue
-        else:
-            store_info_to_param(dic_key, dic_value, True)
+                # print("skip: " + sort_index_bugfix[loop_index] + "information")
+                continue
+
+        if sort_index_bugfix[loop_index] in commit_msg_container_dic_for_bug_fix:
+            # print(sort_index_bugfix[loop_index] + " : " + commit_msg_container_dic_for_bug_fix.get(sort_index_bugfix[loop_index]))
+            if (sort_index_bugfix[loop_index] == current_commit_type):
+                continue
+            if (sort_index_bugfix[loop_index] == "Associated Branch Path"):
+                repo_branch_list = find_associated_branch_path(REPO_INFO_PATH)
+                if (0 == len(repo_branch_list)):
+                    print("error: cannot find repo branch info")
+                    exit(-1)
+                else:
+                    tmp_branch_info = "\n\t".join(repo_branch_list)
+                    store_info_to_param("Associated Branch Path", tmp_branch_info, True)
+                    continue
+            store_info_to_param(sort_index_bugfix[loop_index], commit_msg_container_dic_for_bug_fix.get(sort_index_bugfix[loop_index]), True)
 
     tmp_shell_cmd = "rm -f " + tmp_file_path
     do_shell_cmd(tmp_shell_cmd)
@@ -385,11 +402,7 @@ def new_feature_format_check(file_path):
             report_info_mark = data[0: value_start_position]
 
             report_info_mark_value = data[(value_start_position + 1):]
-            # remove left and right space
-            # check report type start, first check
-            # check which report type it is
-            # ATTENTION: force check "Bug Fix" on file first line
-            # TODO: find way to remove commit_type_dic["X"]
+
             if (report_info_mark == current_commit_type):
                 commit_msg_container_dic_for_new_feature[report_info_mark] = report_info_mark_value
                 store_info_to_param(report_info_mark, report_info_mark_value, False)
@@ -399,7 +412,6 @@ def new_feature_format_check(file_path):
                 """store every key line position to dic"""
                 for x_key in commit_msg_container_dic_for_new_feature.keys():
                     """find if items in defined dic, these are multi-line info"""
-
                     if x_key == report_info_mark:
                         commit_msg_container_dic_for_new_feature[report_info_mark] = str(line_index)
                         pos_index_list.append(line_index)
@@ -408,7 +420,6 @@ def new_feature_format_check(file_path):
     shell_print_stop_line = ""
 
     tmp_file_path = tmp_file_folder + "/tmp.txt"
-
     for index in range(0, len(pos_index_list)):
         shell_print_start_line = str(pos_index_list[index] + 1)
         if index == len(pos_index_list) - 1:
@@ -449,27 +460,29 @@ def new_feature_format_check(file_path):
             print("------------------------------------------------------------------------------")
             return False
     # store msg
-    for dic_key, dic_value in commit_msg_container_dic_for_common_type.items():
-        if dic_value.lower() in skip_commit_mark_list:
-            # print("skip: " + dic_key + "information")
-            continue
-        store_info_to_param(dic_key, dic_value, False)
-
-    for dic_key, dic_value in commit_msg_container_dic_for_new_feature.items():
-        # print(dic_key + " : " + dic_value)
-        if (dic_key == current_commit_type):
-            continue
-        if (dic_key == "Associated Branch Path"):
-            repo_branch_list = find_associated_branch_path(REPO_INFO_PATH)
-            if (0 == len(repo_branch_list)):
-                print("error: cannot find repo branch info")
-                exit(-1)
+    for loop_index in range(len(sort_index_new_feature)):
+        if sort_index_new_feature[loop_index] in commit_msg_container_dic_for_common_type:
+            if commit_msg_container_dic_for_common_type.get(sort_index_new_feature[loop_index]).lower() not in skip_commit_mark_list:
+                store_info_to_param(sort_index_new_feature[loop_index], commit_msg_container_dic_for_common_type.get(sort_index_new_feature[loop_index]), False)
             else:
-                tmp_branch_info = "\n\t".join(repo_branch_list)
-                store_info_to_param(dic_key, tmp_branch_info, True)
-            continue
-        else:
-            store_info_to_param(dic_key, dic_value, True)
+                # print("skip: " + sort_index_new_feature[loop_index] + "information")
+                continue
+
+        if sort_index_new_feature[loop_index] in commit_msg_container_dic_for_new_feature:
+            # print(sort_index_new_feature[loop_index] + " : " + commit_msg_container_dic_for_bug_fix.get(sort_index_new_feature[loop_index]))
+            if (sort_index_new_feature[loop_index] == current_commit_type):
+                continue
+            if (sort_index_new_feature[loop_index] == "Associated Branch Path"):
+                repo_branch_list = find_associated_branch_path(REPO_INFO_PATH)
+                if (0 == len(repo_branch_list)):
+                    print("error: cannot find repo branch info")
+                    exit(-1)
+                else:
+                    tmp_branch_info = "\n\t".join(repo_branch_list)
+                    store_info_to_param("Associated Branch Path", tmp_branch_info, True)
+                    continue
+            store_info_to_param(sort_index_new_feature[loop_index], commit_msg_container_dic_for_new_feature.get(sort_index_new_feature[loop_index]), True)
+
 
     tmp_shell_cmd = "rm -f " + tmp_file_path
     do_shell_cmd(tmp_shell_cmd)
@@ -492,11 +505,7 @@ def feature_upgrade_format_check(file_path):
             value_start_position = data.find(VALUE_CUT_MARK)
             report_info_mark = data[0: value_start_position]
             report_info_mark_value = data[(value_start_position + 1):]
-            # remove left and right space
-            # check report type start, first check
-            # check which report type it is
-            # ATTENTION: force check "Bug Fix" on file first line
-            # TODO: find way to remove commit_type_dic["X"]
+
             if (report_info_mark == current_commit_type):
                 commit_msg_container_dic_for_feature_upgrade[report_info_mark] = report_info_mark_value
                 store_info_to_param(report_info_mark, report_info_mark_value, False)
@@ -556,27 +565,29 @@ def feature_upgrade_format_check(file_path):
             print("------------------------------------------------------------------------------")
             return False
     # store msg
-    for dic_key, dic_value in commit_msg_container_dic_for_common_type.items():
-        if dic_value.lower() in skip_commit_mark_list:
-            # print("skip: " + dic_key + "information")
-            continue
-        store_info_to_param(dic_key, dic_value, False)
-
-    for dic_key, dic_value in commit_msg_container_dic_for_feature_upgrade.items():
-        # print(dic_key + " : " + dic_value)
-        if (dic_key == current_commit_type):
-            continue
-        if (dic_key == "Associated Branch Path"):
-            repo_branch_list = find_associated_branch_path(REPO_INFO_PATH)
-            if (0 == len(repo_branch_list)):
-                print("error: cannot find repo branch info")
-                exit(-1)
+    for loop_index in range(len(sort_index_feature_upgrade)):
+        if sort_index_feature_upgrade[loop_index] in commit_msg_container_dic_for_common_type:
+            if commit_msg_container_dic_for_common_type.get(sort_index_feature_upgrade[loop_index]).lower() not in skip_commit_mark_list:
+                store_info_to_param(sort_index_feature_upgrade[loop_index], commit_msg_container_dic_for_common_type.get(sort_index_feature_upgrade[loop_index]), False)
             else:
-                tmp_branch_info = "\n\t".join(repo_branch_list)
-                store_info_to_param(dic_key, tmp_branch_info, True)
-            continue
-        else:
-            store_info_to_param(dic_key, dic_value, True)
+                # print("skip: " + sort_index_feature_upgrade[loop_index] + "information")
+                continue
+
+        if sort_index_feature_upgrade[loop_index] in commit_msg_container_dic_for_feature_upgrade:
+            # print(sort_index_feature_upgrade[loop_index] + " : " + commit_msg_container_dic_for_feature_upgrade.get(sort_index_feature_upgrade[loop_index]))
+            if (sort_index_feature_upgrade[loop_index] == current_commit_type):
+                continue
+            if (sort_index_feature_upgrade[loop_index] == "Associated Branch Path"):
+                repo_branch_list = find_associated_branch_path(REPO_INFO_PATH)
+                if (0 == len(repo_branch_list)):
+                    print("error: cannot find repo branch info")
+                    exit(-1)
+                else:
+                    tmp_branch_info = "\n\t".join(repo_branch_list)
+                    store_info_to_param("Associated Branch Path", tmp_branch_info, True)
+                    continue
+            store_info_to_param(sort_index_feature_upgrade[loop_index], commit_msg_container_dic_for_feature_upgrade.get(sort_index_feature_upgrade[loop_index]), True)
+
 
     tmp_shell_cmd = "rm -f " + tmp_file_path
     do_shell_cmd(tmp_shell_cmd)
@@ -600,11 +611,7 @@ def revert_format_check(file_path):
             report_info_mark = data[0: value_start_position]
 
             report_info_mark_value = data[(value_start_position + 1):]
-            # remove left and right space
-            # check report type start, first check
-            # check which report type it is
-            # ATTENTION: force check "Bug Fix" on file first line
-            # TODO: find way to remove commit_type_dic["X"]
+
             if (report_info_mark == current_commit_type):
                 commit_msg_container_dic_for_revert[report_info_mark] = report_info_mark_value
                 store_info_to_param(report_info_mark, report_info_mark_value, False)
@@ -663,28 +670,31 @@ def revert_format_check(file_path):
             print("some message didn't write, please re-check commit message. " + dic_value)
             print("------------------------------------------------------------------------------")
             return False
-    # store msg
-    for dic_key, dic_value in commit_msg_container_dic_for_common_type.items():
-        if dic_value.lower() in skip_commit_mark_list:
-            # print("skip: " + dic_key + "information")
-            continue
-        store_info_to_param(dic_key, dic_value, False)
 
-    for dic_key, dic_value in commit_msg_container_dic_for_revert.items():
-        # print(dic_key + " : " + dic_value)
-        if (dic_key == current_commit_type):
-            continue
-        if (dic_key == "Associated Branch Path"):
-            repo_branch_list = find_associated_branch_path(REPO_INFO_PATH)
-            if (0 == len(repo_branch_list)):
-                print("error: cannot find repo branch info")
-                exit(-1)
+    # store msg
+    for loop_index in range(len(sort_index_revert)):
+        if sort_index_revert[loop_index] in commit_msg_container_dic_for_common_type:
+            if commit_msg_container_dic_for_common_type.get(sort_index_revert[loop_index]).lower() not in skip_commit_mark_list:
+                store_info_to_param(sort_index_revert[loop_index], commit_msg_container_dic_for_common_type.get(sort_index_revert[loop_index]), False)
             else:
-                tmp_branch_info = "\n\t".join(repo_branch_list)
-                store_info_to_param(dic_key, tmp_branch_info, True)
-            continue
-        else:
-            store_info_to_param(dic_key, dic_value, True)
+                # print("skip: " + sort_index_revert[loop_index] + "information")
+                continue
+
+        if sort_index_revert[loop_index] in commit_msg_container_dic_for_revert:
+            # print(sort_index_revert[loop_index] + " : " + commit_msg_container_dic_for_revert.get(sort_index_revert[loop_index]))
+            if (sort_index_revert[loop_index] == current_commit_type):
+                continue
+            if (sort_index_revert[loop_index] == "Associated Branch Path"):
+                repo_branch_list = find_associated_branch_path(REPO_INFO_PATH)
+                if (0 == len(repo_branch_list)):
+                    print("error: cannot find repo branch info")
+                    exit(-1)
+                else:
+                    tmp_branch_info = "\n\t".join(repo_branch_list)
+                    store_info_to_param("Associated Branch Path", tmp_branch_info, True)
+                    continue
+            store_info_to_param(sort_index_revert[loop_index], commit_msg_container_dic_for_revert.get(sort_index_revert[loop_index]), True)
+
 
     tmp_shell_cmd = "rm -f " + tmp_file_path
     do_shell_cmd(tmp_shell_cmd)
@@ -707,11 +717,7 @@ def merge_format_check(file_path):
             value_start_position = data.find(VALUE_CUT_MARK)
             report_info_mark = data[0: value_start_position]
             report_info_mark_value = data[(value_start_position + 1):]
-            # remove left and right space
-            # check report type start, first check
-            # check which report type it is
-            # ATTENTION: force check "Bug Fix" on file first line
-            # TODO: find way to remove commit_type_dic["X"]
+
             if (report_info_mark == current_commit_type):
                 commit_msg_container_dic_for_merge[report_info_mark] = report_info_mark_value
                 store_info_to_param(report_info_mark, report_info_mark_value, False)
@@ -770,27 +776,31 @@ def merge_format_check(file_path):
             print("------------------------------------------------------------------------------")
             return False
     # store msg
-    for dic_key, dic_value in commit_msg_container_dic_for_common_type.items():
-        if dic_value.lower() in skip_commit_mark_list:
-            # print("skip: " + dic_key + "information")
-            continue
-        store_info_to_param(dic_key, dic_value, False)
-
-    for dic_key, dic_value in commit_msg_container_dic_for_merge.items():
-        # print(dic_key + " : " + dic_value)
-        if (dic_key == current_commit_type):
-            continue
-        if (dic_key == "Associated Branch Path"):
-            repo_branch_list = find_associated_branch_path(REPO_INFO_PATH)
-            if (0 == len(repo_branch_list)):
-                print("error: cannot find repo branch info")
-                exit(-1)
+    for loop_index in range(len(sort_index_merge)):
+        if sort_index_merge[loop_index] in commit_msg_container_dic_for_common_type:
+            if commit_msg_container_dic_for_common_type.get(
+                    sort_index_merge[loop_index]).lower() not in skip_commit_mark_list:
+                store_info_to_param(sort_index_merge[loop_index], commit_msg_container_dic_for_common_type.get(
+                        sort_index_merge[loop_index]), False)
             else:
-                tmp_branch_info = "\n\t".join(repo_branch_list)
-                store_info_to_param(dic_key, tmp_branch_info, True)
-            continue
-        else:
-            store_info_to_param(dic_key, dic_value, True)
+                # print("skip: " + sort_index_merge[loop_index] + "information")
+                continue
+
+        if sort_index_merge[loop_index] in commit_msg_container_dic_for_merge:
+            # print(sort_index_merge[loop_index] + " : " + commit_msg_container_dic_for_merge.get(sort_index_merge[loop_index]))
+            if (sort_index_merge[loop_index] == current_commit_type):
+                continue
+            if (sort_index_merge[loop_index] == "Associated Branch Path"):
+                repo_branch_list = find_associated_branch_path(REPO_INFO_PATH)
+                if (0 == len(repo_branch_list)):
+                    print("error: cannot find repo branch info")
+                    exit(-1)
+                else:
+                    tmp_branch_info = "\n\t".join(repo_branch_list)
+                    store_info_to_param("Associated Branch Path", tmp_branch_info, True)
+                    continue
+            store_info_to_param(sort_index_merge[loop_index], commit_msg_container_dic_for_merge.get(
+                    sort_index_merge[loop_index]), True)
 
     tmp_shell_cmd = "rm -f " + tmp_file_path
     do_shell_cmd(tmp_shell_cmd)
@@ -860,7 +870,7 @@ def get_and_create_match_template(search_str):
     start_line = 0
     end_line = 1
     line_index = 1
-    print("---> in get_and_create_match_template: " + template_file_path)
+    # print("---> in get_and_create_match_template: " + template_file_dir)
     # print ("transfered in str: " + search_str)
     if is_file_exist(template_file_path):
         # print("start find str: " + search_str)
@@ -982,10 +992,11 @@ if (switch_mark_check == str(sys.argv[1])):
             loop_ticks = 0
             while loop_ticks < 3:
                 loop_ticks += 1
-                print("support commit type:")
-                for key, value in commit_type_dic.items():
-                    print(key + ". " + value)
-                print("===================================================")
+                print("======================= support commit type: =======================")
+                for type_index in range(len(sort_index_commit_type)):
+                    if sort_index_commit_type[type_index] in commit_type_dic:
+                        print(sort_index_commit_type[type_index] + ". " + commit_type_dic.get(sort_index_commit_type[type_index]))
+                print("===================================================================")
 
 
                 try:
