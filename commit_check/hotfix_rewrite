@@ -96,7 +96,7 @@ function check_type_set_path_dir()
 function get_current_repo_branch_name()
 {
 	# choose dir kernel to find branch name
-	cd  $CODE_HOME_DIR/kernel/build
+	cd  $CODE_HOME_DIR/system/vold
 	BRANCH_NAME=`git symbolic-ref --short -q HEAD`
 	if [ ! != "$BRANCH_NAME" ];then
 		debug_msg "Current Branch: $BRANCH_NAME"
@@ -264,8 +264,6 @@ if [ true == "$FOUND_FILE_CHANGE" ]; then
 			fi
 			let branch_index++
 		done
-	else
-		exit 0
 	fi
 else
 	echo "nothing to commit (working directory clean)"
