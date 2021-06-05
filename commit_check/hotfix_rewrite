@@ -3,7 +3,7 @@
 BASH_VSERISON=1.0
 echo "Bash Version: $BASH_VSERISON"
 
-DEBUG_FLAG=false
+DEBUG_FLAG=true
 MTK=false
 SPREADTRUM=false
 FOUND_FILE_CHANGE=false
@@ -125,13 +125,13 @@ function sprd_generate_patch()
 	TEMP_LOG_FILE=$LOG_FLD/temp_log.log
 	while [ $branch_index -le $CHANGED_BRANCH_NUMBER ]
 	do
-		# debug_msg "branch_index: $branch_index"
+		debug_msg "branch_index: $branch_index"
 		CURRENT_BRANCH_DIR=`awk -v loop_index=$branch_index -F " " '{print $loop_index}' $PATCH_TARGET_DIR/$REPO_BRANCH_LOG`
-		# debug_msg "CURRENT_BRANCH_DIR: $CURRENT_BRANCH_DIR"
+		debug_msg "CURRENT_BRANCH_DIR: $CURRENT_BRANCH_DIR"
 		mkdir -p $PATCH_TARGET_DIR/current/$CURRENT_BRANCH_DIR
 		mkdir -p $PATCH_TARGET_DIR/before/$CURRENT_BRANCH_DIR
 		cd $CURRENT_BRANCH_DIR
-		# debug_msg "O PWD: $PWD"
+		debug_msg "O PWD: $PWD"
 
 		all_change_list=$(git status -s | awk '{print $NF}')
 		change_ignore_new_add=$(git status -s -uno | awk '{print $NF}')
