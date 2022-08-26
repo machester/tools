@@ -1,0 +1,433 @@
+#!/bin/bash
+
+#---------------------------------------------- change list -----------------------------------------------
+# ---> hotfix: version v1.1; format_chek.py version:1.6
+#   1. 修改错误判断逻辑，提交检查检测到一次错误后不继续执行
+#   2. 格式化错误信息
+#   3. 检测到错误或者提交过程中中断提交后，删除生成的 patch 文件
+#   4. 正常提交后，将生成的patch文件重命名为 brief 信息 + time 格式
+#   5. 拷贝文件时附带文件时间戳
+#   6. 代码提交后备份 commit.txt 文件
+#----------------------------------------------------------------------------------------------------------
+
+BASH_VSERISON=1.1
+CHANGE_DATE=2021-07-21
+
+echo "Bash Version: $BASH_VSERISON"
+
+DEBUG_FLAG=false
+MTK=false
+SPREADTRUM=false
+FOUND_FILE_CHANGE=false
+FILE_COMMIT_PASS=false
+GOT_ERROR=false
+NEED_COMMIT=false
+
+CUR_DIR=$PWD
+FORMAT_TEMPLATE_FLD=$(dirname ~/config/)
+# FORMAT_TEMPLATE_PATH=$FORMAT_TEMPLATE_FLD/config/commit_format_template.txt
+# FORMAT_CHECK_PY_FLILE=$FORMAT_TEMPLATE_FLD/config/format_check.py
+COMMIT_FILE_NAME=commit.txt
+TEMP_FILE_NAME=temp.txt
+# echo "FORMAT_CHECK_PY_FLILE: $FORMAT_CHECK_PY_FLILE"
+
+REPO_INFO_LOG=repo_infolog.log
+REPO_BRANCH_LOG=repo_branch.log
+
+
+function help()
+{
+	echo "------------------------------ HELP ------------------------------"
+	echo "which place can use this bash script? "
+	echo "MTK: use this script under alps dir "
+	echo "SPREADTRUM: use this in main code dir"
+	echo "Some help information need to added..."
+	echo "------------------------------------------------------------------"
+}
+
+function error_echo()
+{
+	if [ $# -ne 1 ];then
+		echo "not param transfred in error_echo"
+	else
+		echo -e "\e[1;31m ERROR: $1 \e[0m"
+	fi
+}
+
+function pass_echo()
+{
+	if [ $# -ne 1 ];then
+		echo "not param transfred in pass_echo"
+	else
+		echo -e "\e[0;36m PASS: $1 \e[0m"
+	fi
+}
+
+function debug_msg()
+{
+	if [ true == "$DEBUG_FLAG" ]; then
+		if [ $# -eq 1 ];then
+			echo -ne "DEBUG: $1 \n"
+		fi
+	fi
+}
+
+function check_type_set_path_dir()
+{
+	if [  -d ".repo" ]; then
+		if [ ! -d "alps" ]; then
+			debug_msg "---> SPREADTRUM"
+			SPREADTRUM=true
+			CODE_HOME_DIR=$PWD
+			cd ..
+			PATCH_DIR=$PWD/PATCH
+			cd -
+			debug_msg "---> SPREADTRUM: CODE_HOME_DIR: $CODE_HOME_DIR"
+			debug_msg "---> SPREADTRUM: PATCH_DIR: $PATCH_DIR"
+		fi
+
+	elif [  -d "../.repo" ]; then
+		if [  -d "../alps" ]; then
+			MTK=true
+			CODE_HOME_DIR=$PWD
+			cd ..
+			MTK_ALPS_DIR=$PWD
+			# patch_dir is alps patch_dir
+			PATCH_DIR=$MTK_ALPS_DIR/PATCH
+			debug_msg "---> MTK MTK_ALPS_DIR: $MTK_ALPS_DIR"
+			debug_msg "---> MTK PATCH_DIR: $PATCH_DIR"
+			debug_msg "---> MTK CODE_HOME_DIR: $CODE_HOME_DIR"
+			cd $MTK_ALPS_DIR
+		else
+			error_echo "MTK Platform: alps can not found"
+			exit 1
+		fi
+	fi
+	debug_msg "MTK: $MTK , SPREADTRUM: $SPREADTRUM"
+
+	if [ true == "$SPREADTRUM" ]; then
+		 echo "Platform Detected: SPREADTRUM"
+
+	elif [ true == "$MTK" ]; then
+		echo "Platform Detected: MTK"
+		
+	else
+		error_echo "Platform not Detected"
+		exit 1
+	fi
+	
+}
+
+function get_current_repo_branch_name()
+{
+	# choose dir kernel to find branch name
+	cd  $CODE_HOME_DIR/system/vold
+	BRANCH_NAME=`git symbolic-ref --short -q HEAD`
+	if [ ! != "$BRANCH_NAME" ];then
+		debug_msg "Current Branch: $BRANCH_NAME"
+	else
+		error_echo "No found this branch!!!"
+		exit 1
+	fi
+	cd $CODE_HOME_DIR
+}
+
+
+function sprd_generate_patch()
+{
+	debug_msg "Get PATCH on Branch: $BRANCH_NAME"
+	echo "SPREADTRUM repo status run"
+	repo status > $PATCH_TARGET_DIR/$REPO_INFO_LOG
+
+	PROJECT_NAME=$(awk '{if(match($1,"project")){print $2}}' $PATCH_TARGET_DIR/$REPO_INFO_LOG)
+	echo $PROJECT_NAME > $PATCH_TARGET_DIR/$REPO_BRANCH_LOG
+	debug_msg "PROJECT_NAME: $PROJECT_NAME"
+	debug_msg "CODE_HOME_DIR: $CODE_HOME_DIR"
+
+	CHANGED_BRANCH_NUMBER=`awk -F " " '{print NF}' $PATCH_TARGET_DIR/$REPO_BRANCH_LOG`
+	debug_msg "CHANGED_BRANCH_NUMBER: $CHANGED_BRANCH_NUMBER"
+	branch_index=1
+	
+	if (($branch_index > $CHANGED_BRANCH_NUMBER)); then
+		pass_echo "Nothing need to patch!!!"
+	fi
+
+	while [ $branch_index -le $CHANGED_BRANCH_NUMBER ]
+	do
+		# debug_msg "branch_index: $branch_index"
+		CURRENT_BRANCH_DIR=`awk -v loop_index=$branch_index -F " " '{print $loop_index}' $PATCH_TARGET_DIR/$REPO_BRANCH_LOG`
+		# debug_msg "CURRENT_BRANCH_DIR: $CURRENT_BRANCH_DIR"
+		mkdir -p $PATCH_TARGET_DIR/current/$CURRENT_BRANCH_DIR
+		mkdir -p $PATCH_TARGET_DIR/before/$CURRENT_BRANCH_DIR
+		cd $CURRENT_BRANCH_DIR
+		# debug_msg "O PWD: $PWD"
+
+		all_change_list=$(git status -s | awk '{print $NF}')
+		change_ignore_new_add=$(git status -s -uno | awk '{print $NF}')
+		
+		for modified_file in $all_change_list
+		do
+			cp -raf --parents $modified_file $PATCH_TARGET_DIR/current/$CURRENT_BRANCH_DIR
+			FOUND_FILE_CHANGE=true
+		done
+		debug_msg "---> run git stash"
+		git stash
+		for modified_file in $change_ignore_new_add
+		do
+			cp -raf --parents $modified_file $PATCH_TARGET_DIR/before/$CURRENT_BRANCH_DIR
+		done
+		debug_msg "---> git stash pop"
+		git stash pop
+		cd $CODE_HOME_DIR
+
+		let branch_index++
+	done
+	# echo "---> SPREADTRUM patch finish"
+}
+
+
+function mtk_generate_patch()
+{
+	debug_msg "Get PATCH on Branch: $BRANCH_NAME"
+	echo "MTK repo status run"
+	repo status > $PATCH_TARGET_DIR/$REPO_INFO_LOG
+
+	PROJECT_NAME=$(awk '{if(match($1,"project")){print $2}}' $PATCH_TARGET_DIR/$REPO_INFO_LOG)
+	echo $PROJECT_NAME > $PATCH_TARGET_DIR/$REPO_BRANCH_LOG
+	debug_msg "PROJECT_NAME: $PROJECT_NAME"
+	debug_msg "CODE_HOME_DIR: $CODE_HOME_DIR"
+
+	CHANGED_BRANCH_NUMBER=`awk -F " " '{print NF}' $PATCH_TARGET_DIR/$REPO_BRANCH_LOG`
+	# debug_msg "CHANGED_BRANCH_NUMBER: $CHANGED_BRANCH_NUMBER"
+	branch_index=1
+
+	if (($branch_index > $CHANGED_BRANCH_NUMBER)); then
+		pass_echo "Nothing need to patch!!!"
+	fi
+	while [ $branch_index -le $CHANGED_BRANCH_NUMBER ]
+	do
+		# debug_msg "branch_index: $branch_index"
+		CURRENT_BRANCH_DIR=`awk -v loop_index=$branch_index -F " " '{print $loop_index}' $PATCH_TARGET_DIR/$REPO_BRANCH_LOG`
+		# debug_msg "CURRENT_BRANCH_DIR: $CURRENT_BRANCH_DIR"
+		mkdir -p $PATCH_TARGET_DIR/current/$CURRENT_BRANCH_DIR
+		mkdir -p $PATCH_TARGET_DIR/before/$CURRENT_BRANCH_DIR
+		cd $CURRENT_BRANCH_DIR
+		# debug_msg "O PWD: $PWD"
+
+		all_change_list=$(git status -s | awk '{print $NF}')
+		change_ignore_new_add=$(git status -s -uno | awk '{print $NF}')
+		
+		for modified_file in $all_change_list
+		do
+			cp -raf --parents $modified_file $PATCH_TARGET_DIR/current/$CURRENT_BRANCH_DIR
+			FOUND_FILE_CHANGE=true
+		done
+		debug_msg "---> run git stash"
+		git stash
+		for modified_file in $change_ignore_new_add
+		do
+			cp -raf --parents $modified_file $PATCH_TARGET_DIR/before/$CURRENT_BRANCH_DIR
+		done
+		debug_msg "---> git stash pop"
+		git stash pop
+		cd $MTK_ALPS_DIR
+
+		let branch_index++
+	done
+	# echo "---> MTK patch finish"
+}
+
+function rename_path_with_brief_info()
+{
+	debug_msg "current PATCH_TARGET_DIR path: $PATCH_TARGET_DIR"
+	
+
+	if [ true == "$SPREADTRUM" ]; then
+		TMP_FILE_PATH=$CODE_HOME_DIR/$TEMP_FILE_NAME
+		COMMIT_FILE_PATH=$CODE_HOME_DIR/$COMMIT_FILE_NAME
+		cp -f 
+	elif [ true == "$MTK" ]; then
+		TMP_FILE_PATH=$MTK_ALPS_DIR/$TEMP_FILE_NAME
+		COMMIT_FILE_PATH=$MTK_ALPS_DIR/$COMMIT_FILE_NAME
+	fi
+
+	debug_msg "TMP_FILE_PATH: $TMP_FILE_PATH"
+	debug_msg "COMMIT_FILE_PATH: $COMMIT_FILE_PATH"
+
+	# # get commit message brief
+	# cp -f $COMMIT_FILE_PATH $TMP_FILE_PATH
+	#format: delete empty line
+	sed -i '/^\s*$/d' $TMP_FILE_PATH
+	# delete space
+	sed -i 's/[[:space:]]//g' $TMP_FILE_PATH
+
+	var=`cat $TMP_FILE_PATH | head -1`
+	echo "$var" > $TMP_FILE_PATH
+	# get commit info
+	msgtmp=`awk -F ":" '{print $2}' $TMP_FILE_PATH`
+	debug_msg "msgtmp: $msgtmp"
+
+	# backup commit.txt file
+	cp -af  $COMMIT_FILE_PATH $PATCH_TARGET_DIR
+
+	mv $PATCH_TARGET_DIR $PATCH_DIR/$BRANCH_NAME/$msgtmp"_"$TIME
+	debug_msg "TMP_FILE_PATH: $TMP_FILE_PATH"
+	rm -f $TMP_FILE_PATH
+
+	pass_echo ">>> Stored Patch PATH: $PATCH_DIR/$BRANCH_NAME/$msgtmp"_"$BRANCH_NAME"_"$TIME <<<"
+}
+
+function error_handle()
+{
+	# delete current generated path file
+	if [ true == "$SPREADTRUM" ]; then
+		rm -f $CODE_HOME_DIR/donot_write_commit.txt
+		rm -f $CODE_HOME_DIR/$TEMP_FILE_NAME
+
+	elif [ true == "$MTK" ]; then
+		rm -f $MTK_ALPS_DIR/donot_write_commit.txt
+		rm -f $MTK_ALPS_DIR/$TEMP_FILE_NAME
+	fi
+
+	rm -rf $PATCH_TARGET_DIR
+}
+
+# debug_msg $FORMAT_TEMPLATE_PATH
+debug_msg "CUR_DIR: $CUR_DIR"
+# find repo set home dir
+check_type_set_path_dir
+get_current_repo_branch_name
+TIME=$(date +%Y-%m-%d_%H-%M)
+PATCH_NAME=Patch_"$TIME"
+PATCH_TARGET_DIR=$PATCH_DIR/$BRANCH_NAME/$PATCH_NAME
+if [ ! -d "$PATCH_TARGET_DIR" ]; then
+	mkdir -p $PATCH_TARGET_DIR
+else
+	debug_msg "exsit: $PATCH_TARGET_DIR"
+	rm -rvf $PATCH_TARGET_DIR
+	mkdir -p $PATCH_TARGET_DIR
+fi
+
+touch $PATCH_TARGET_DIR/$REPO_INFO_LOG
+touch $PATCH_TARGET_DIR/$REPO_BRANCH_LOG
+
+
+if [ true == "$SPREADTRUM" ]; then
+	cd $CODE_HOME_DIR
+	debug_msg "---> moved in: CODE_HOME_DIR: $CODE_HOME_DIR"
+	echo "Spreadtrum Platform begin"
+	sprd_generate_patch
+
+elif [ true == "$MTK" ]; then
+	echo "MTK Platform begin"
+	cd $MTK_ALPS_DIR
+	debug_msg "---> moved in: MTK_ALPS_DIR: $MTK_ALPS_DIR"
+	mtk_generate_patch
+
+else
+	error_echo "cannot found correct platform"
+fi
+
+if [ true == "$FOUND_FILE_CHANGE" ]; then
+	pass_echo "-----------------------------------------------"
+	pass_echo "Found all changed files. Continue..."
+	# read -r  -p "auto commit(y/n)? : " input
+    # case $input in
+    # 	[yY][eE][sS]|[yY])
+	# 	NEED_COMMIT=true
+	# 	;;
+	# 	[nN][oO]|[nN])
+	# 	NEED_COMMIT=false
+	# 	;;
+	# 	*)
+    #     NEED_COMMIT=false
+	# esac
+
+	# if [ "$NEED_COMMIT" = true ]; then
+	# 	if [ -e ~/config/gerrit ]; then
+	# 		cd $CUR_DIR
+	# 		echo "---> ready to check Gerrit"
+	# 		source ~/config/gerrit
+	# 		cd -
+	# 	else
+	# 		error_echo "Not found gerrit"
+	# 		exit 1
+	# 	fi
+	# 	debug_msg "---> ready to check commit.txt file format"
+	# 	# commit.txt file format check
+	# 	# msg_formatcheck_result=$(python3 $FORMAT_CHECK_PY_FLILE check $FORMAT_TEMPLATE_PATH)
+	#     python3 $FORMAT_CHECK_PY_FLILE check $FORMAT_TEMPLATE_PATH
+    #     ret_template_check=$?
+    #     debug_msg "python script ret_template_check: $ret_template_check"
+    #     # if got error
+    #     if (( ret_template_check == 2 )); then
+    #         error_echo "commit.txt format check failed"
+    #         GOT_ERROR=true
+    #     fi
+
+	# 	if [[ $msg_formatcheck_result =~ "error:::" ]]; then
+	# 		error_echo "format check failed: $COMMIT_FILE_NAME"
+	# 		GOT_ERROR=true
+	# 	else
+	# 		debug_msg "format check pass: $COMMIT_FILE_NAME"
+	# 	fi
+
+	# 	branch_index=1
+	# 	debug_msg "CHANGED_BRANCH_NUMBER: $CHANGED_BRANCH_NUMBER"
+	# 	while [ $branch_index -le $CHANGED_BRANCH_NUMBER ]
+	# 	do
+	# 		if [ false == "$GOT_ERROR" ]; then
+	# 			# debug_msg "branch_index: $branch_index"
+	# 			CURRENT_BRANCH_DIR=`awk -v loop_index=$branch_index -F " " '{print $loop_index}' $PATCH_TARGET_DIR/$REPO_BRANCH_LOG`
+	# 			cd $CURRENT_BRANCH_DIR
+	# 			# debug_msg "CURRENT_BRANCH_DIR: $CURRENT_BRANCH_DIR"
+	# 			echo "In Repository: $PWD"
+	# 			git add --all
+	# 		    python3 $FORMAT_CHECK_PY_FLILE commit $FORMAT_TEMPLATE_PATH $PATCH_TARGET_DIR/$REPO_INFO_LOG
+    #             retvalue_commit_check=$?
+    #             debug_msg "python script retvalue_commit_check: $retvalue_commit_check"
+	# 			# if got error
+	# 			if (( retvalue_commit_check == 2 )); then
+	# 				error_echo "$COMMIT_FILE_NAME format check failed"
+	# 				GOT_ERROR=true
+	# 			else
+	# 				FILE_COMMIT_PASS=true
+	# 			fi
+
+	# 			if [ true == "$SPREADTRUM" ]; then
+	# 				cd $CODE_HOME_DIR
+	# 			elif [ true == "$MTK" ]; then
+	# 				cd $MTK_ALPS_DIR
+	# 			fi
+	# 		fi
+	# 		let branch_index++
+	# 	done
+	# else
+	# 	pass_echo "normally exit"
+	# fi
+
+else
+	pass_echo "exit: nothing changed!!!"
+	rm -rf $PATCH_TARGET_DIR
+fi
+
+# delete current generated path file
+if [ true == "$GOT_ERROR" ]; then
+	error_handle
+fi
+
+rm -f $PATCH_TARGET_DIR/$REPO_INFO_LOG
+rm -f $PATCH_TARGET_DIR/$REPO_BRANCH_LOG
+
+if [ true == "$SPREADTRUM" ]; then
+	rm -f $CODE_HOME_DIR/tmp.txt
+
+elif [ true == "$MTK" ]; then
+	rm -f $MTK_ALPS_DIR/tmp.txt
+fi
+
+# rename current path file name by commit.txt brief
+# if [ true == "$FILE_COMMIT_PASS" ]; then
+if [ true == "$FILE_COMMIT_PASS" ]; then
+	rename_path_with_brief_info
+fi
