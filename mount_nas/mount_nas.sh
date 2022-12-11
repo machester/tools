@@ -59,3 +59,4 @@ else
 fi
 
 # ------------------------ END LINE ---------------------------------
+# sudo mount -t cifs -o rw,dir_mode=0755,file_mode=0755,sync,username=quan,password=capsllockJQ2457,vers=3.0,uid=$(id -u),gid=$(id -g),forceuid,forcegid,mfsymlinks,soft //192.168.3.100/Embedded ~/mount/embedded
